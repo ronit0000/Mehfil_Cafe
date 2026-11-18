@@ -1,5 +1,5 @@
 // src/components/Gallery.jsx
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 const storyMoments = [
@@ -65,42 +65,61 @@ const storyMoments = [
   },
 ];
 
+const STORY_DURATION = 4000; // 4 seconds per story
+
 export default function Gallery() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   const [current, setCurrent] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 = next (right to left), -1 = prev
-  const [isPaused, setIsPaused] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const [isHolding, setIsHolding] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   const total = storyMoments.length;
   const activeStory = storyMoments[current];
 
-  // Automatic right-to-left continuous slideshow (auto-advances smoothly)
-  useEffect(() => {
-    if (isPaused) return;
-
-    const interval = setInterval(() => {
-      setDirection(1);
-      setCurrent((prev) => (prev + 1) % total);
-    }, 4000); // 4-second dwell time for comfortable reading of the photo and story
-
-    return () => clearInterval(interval);
-  }, [isPaused, total]);
-
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     setDirection(1);
+    setProgress(0);
     setCurrent((prev) => (prev + 1) % total);
-  };
+  }, [total]);
 
-  const goToPrev = () => {
+  const goToPrev = useCallback(() => {
     setDirection(-1);
+    setProgress(0);
     setCurrent((prev) => (prev - 1 + total) % total);
-  };
+  }, [total]);
 
   const selectStory = (idx) => {
     setDirection(idx >= current ? 1 : -1);
+    setProgress(0);
     setCurrent(idx);
   };
+
+  // Instagram story-style progress & hold-to-pause
+  // Moves automatically, pauses completely while finger is held on screen
+  useEffect(() => {
+    if (isHolding) return;
+
+    const tickInterval = 50;
+    const step = (tickInterval / STORY_DURATION) * 100;
+
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          goToNext();
+          return 0;
+        }
+        return prev + step;
+      });
+    }, tickInterval);
+
+    return () => clearInterval(timer);
+  }, [isHolding, goToNext]);
+
+  // Hold-to-pause handlers (like Instagram stories)
+  const handleHoldStart = () => setIsHolding(true);
+  const handleHoldEnd = () => setIsHolding(false);
 
   // Slide animation variants for right-to-left motion
   const slideVariants = {
@@ -114,7 +133,7 @@ export default function Gallery() {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.55,
+        duration: 0.5,
         ease: [0.22, 1, 0.36, 1],
       },
     },
@@ -123,7 +142,7 @@ export default function Gallery() {
       opacity: 0,
       scale: 0.98,
       transition: {
-        duration: 0.45,
+        duration: 0.4,
         ease: [0.22, 1, 0.36, 1],
       },
     }),
@@ -133,10 +152,10 @@ export default function Gallery() {
     <section
       id="gallery"
       ref={ref}
-      className="relative py-20 sm:py-28 overflow-hidden section-bg"
+      className="relative py-20 sm:py-28 overflow-hidden section-bg select-none"
       aria-label="Through the Lens - The Mehfil Experience"
     >
-      {/* Decorative ambient backdrop glows */}
+      {/* Decorative ambient backdrop glow */}
       <div
         aria-hidden="true"
         className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-mehfil-gold/5 blur-[120px] rounded-full pointer-events-none"
@@ -156,7 +175,7 @@ export default function Gallery() {
             The <span className="font-serif italic text-mehfil-gold">Mehfil</span> Experience
           </h2>
           <p className="mt-4 text-mehfil-cream/65 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            A frame-by-frame visual journey across our open-sky terrace in Berhampur. Explore each corner, its starlit atmosphere, and the story behind the view.
+            A frame-by-frame visual journey across our open-sky terrace in Berhampur. Tap and hold anywhere on the photo to pause.
           </p>
         </motion.div>
 
@@ -166,13 +185,43 @@ export default function Gallery() {
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
         >
           {/* Main Visual Display Frame (Single Image at a time) */}
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40">
+          <div
+            className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40 touch-none cursor-pointer"
+            onPointerDown={handleHoldStart}
+            onPointerUp={handleHoldEnd}
+            onPointerLeave={handleHoldEnd}
+            onPointerCancel={handleHoldEnd}
+            onTouchStart={handleHoldStart}
+            onTouchEnd={handleHoldEnd}
+            onTouchCancel={handleHoldEnd}
+            onMouseDown={handleHoldStart}
+            onMouseUp={handleHoldEnd}
+            onMouseLeave={handleHoldEnd}
+          >
+            {/* Instagram Story Progress Segments at Top */}
+            <div className="absolute top-3 left-4 right-4 z-20 flex gap-1.5 pointer-events-none">
+              {storyMoments.map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden backdrop-blur-sm"
+                >
+                  <div
+                    className="h-full bg-mehfil-gold transition-all duration-75"
+                    style={{
+                      width:
+                        idx < current
+                          ? '100%'
+                          : idx === current
+                          ? `${progress}%`
+                          : '0%',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={activeStory.id}
@@ -187,15 +236,16 @@ export default function Gallery() {
                 <img
                   src={activeStory.src}
                   alt={activeStory.title}
-                  className="w-full h-full object-cover select-none"
+                  className="w-full h-full object-cover select-none pointer-events-none"
                   loading="eager"
+                  draggable={false}
                 />
 
                 {/* Subtle edge vignette for focus without obscuring the photo */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
                 {/* Top Badge: Category & Counter */}
-                <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+                <div className="absolute top-7 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
                   <span className="text-xs uppercase tracking-wider font-semibold px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-mehfil-gold/30 text-mehfil-gold shadow-md">
                     {activeStory.tag}
                   </span>
@@ -247,40 +297,27 @@ export default function Gallery() {
                 </AnimatePresence>
               </div>
 
-              {/* Right Navigation & Arrow Controls */}
-              <div className="flex md:flex-col items-center md:items-end justify-between gap-4 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-                {/* Arrow Buttons */}
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={goToPrev}
-                    aria-label="Previous photo story"
-                    className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+              {/* Right Navigation Controls */}
+              <div className="flex items-center justify-end gap-3 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                <button
+                  onClick={goToPrev}
+                  aria-label="Previous photo story"
+                  className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
 
-                  <button
-                    onClick={goToNext}
-                    aria-label="Next photo story"
-                    className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-
-                {/* Pause/Live Indicator */}
-                <div className="text-[11px] text-mehfil-cream/40 flex items-center gap-1.5 font-light">
-                  <span
-                    className={`inline-block w-1.5 h-1.5 rounded-full ${
-                      isPaused ? 'bg-amber-400' : 'bg-green-400 animate-ping'
-                    }`}
-                  />
-                  <span>{isPaused ? 'Paused on touch' : 'Auto-advancing'}</span>
-                </div>
+                <button
+                  onClick={goToNext}
+                  aria-label="Next photo story"
+                  className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
 
@@ -310,7 +347,7 @@ export default function Gallery() {
           className="text-center mt-10 sm:mt-12"
         >
           <p className="text-mehfil-cream/50 text-xs sm:text-sm mb-3">
-            Want to see live rooftop videos and daily evening specials?
+            Follow us for live rooftop stories and daily evening specials
           </p>
           <a
             href="https://www.instagram.com/_mehfil_berhampur/"
