@@ -9,12 +9,34 @@ const timeSlots = [
   '11:00 AM', '11:30 AM',
   '12:00 PM', '12:30 PM',
   '01:00 PM', '01:30 PM',
-  '02:00 PM', '06:00 PM',
-  '06:30 PM', '07:00 PM',
-  '07:30 PM', '08:00 PM',
-  '08:30 PM', '09:00 PM',
-  '09:30 PM', '10:00 PM',
+  '02:00 PM', '02:30 PM',
+  '06:00 PM', '06:30 PM',
+  '07:00 PM', '07:30 PM',
+  '08:00 PM', '08:30 PM',
+  '09:00 PM', '09:30 PM',
+  '10:00 PM', '10:30 PM',
 ];
+
+function parseTimeToMinutes(timeStr) {
+  if (!timeStr) return 0;
+  const match = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return 0;
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const period = match[3].toUpperCase();
+
+  if (period === 'PM' && hours < 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+
+  return hours * 60 + minutes;
+}
+
+function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 function FloatingInput({
   id, label, type = 'text', value, onChange, onBlur,
@@ -64,6 +86,16 @@ export default function Reservation() {
   const sectionRef = useRef(null);
   const inView     = useInView(sectionRef, { once: true, margin: '-80px' });
 
+  const today = getLocalDateString();
+  const isToday = form.date === today;
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // If today is chosen, dynamically display ONLY future time slots (slots strictly after current time)
+  const availableSlots = isToday
+    ? timeSlots.filter((slot) => parseTimeToMinutes(slot) > currentMinutes)
+    : timeSlots;
+
   const validate = () => {
     const e = { ...initialErrors };
     if (!form.name.trim()) e.name = 'Please enter your full name.';
@@ -76,14 +108,35 @@ export default function Reservation() {
     if (!form.guests || Number(form.guests) < 1) {
       e.guests = 'Please enter the number of guests (min 1).';
     }
-    if (!form.date) e.date = 'Please select a date.';
-    if (!form.time) e.time = 'Please select a time slot.';
+    if (!form.date) {
+      e.date = 'Please select a date.';
+    }
+    if (isToday && availableSlots.length === 0) {
+      e.time = 'No more slots available today. Please select tomorrow.';
+    } else if (!form.time) {
+      e.time = 'Please select a time slot.';
+    } else if (isToday && parseTimeToMinutes(form.time) <= currentMinutes) {
+      e.time = 'This time has already passed. Please pick an upcoming slot.';
+    }
+
     setErrors(e);
     return Object.values(e).every((v) => !v);
   };
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const val = e.target.value;
+    if (field === 'date') {
+      const isSelectedToday = val === today;
+      let newTime = form.time;
+      // If switching to today and currently chosen time has already passed, clear it
+      if (isSelectedToday && form.time && parseTimeToMinutes(form.time) <= currentMinutes) {
+        newTime = '';
+      }
+      setForm((prev) => ({ ...prev, date: val, time: newTime }));
+    } else {
+      setForm((prev) => ({ ...prev, [field]: val }));
+    }
+
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
@@ -100,7 +153,12 @@ export default function Reservation() {
       e.guests = 'Please enter number of guests (min 1).';
     }
     if (field === 'date' && !form.date) e.date = 'Please select a date.';
-    if (field === 'time' && !form.time) e.time = 'Please select a time slot.';
+    if (field === 'time') {
+      if (!form.time) e.time = 'Please select a time slot.';
+      else if (isToday && parseTimeToMinutes(form.time) <= currentMinutes) {
+        e.time = 'This time has already passed. Please select an upcoming slot.';
+      }
+    }
     setErrors(e);
   };
 
@@ -130,28 +188,28 @@ export default function Reservation() {
       formattedDate = form.date;
     }
 
-    // Build clean WhatsApp message (no fragile emoji surrogate pairs to prevent  encoding errors)
+    // Build clean WhatsApp message (no asterisks / stars at the start of lines)
     const lines = [
-      '*MEHFIL ROOFTOP CAFE & RESTRO*',
-      '*Table Reservation Request*',
+      'MEHFIL ROOFTOP CAFE & RESTRO',
+      'Table Reservation Request',
       '--------------------------------',
-      `*Name:* ${form.name.trim()}`,
-      `*Number of Guests:* ${form.guests}`,
-      `*Date:* ${formattedDate}`,
-      `*Time Slot:* ${form.time}`,
+      `Name: ${form.name.trim()}`,
+      `Number of Guests: ${form.guests}`,
+      `Date: ${formattedDate}`,
+      `Time Slot: ${form.time}`,
     ];
 
     if (form.phone.trim()) {
-      lines.push(`*Contact:* ${form.phone.trim()}`);
+      lines.push(`Contact: ${form.phone.trim()}`);
     }
     if (form.email.trim()) {
-      lines.push(`*Email:* ${form.email.trim()}`);
+      lines.push(`Email: ${form.email.trim()}`);
     }
     if (form.occasion) {
-      lines.push(`*Occasion:* ${form.occasion}`);
+      lines.push(`Occasion: ${form.occasion}`);
     }
     if (form.notes.trim()) {
-      lines.push(`*Special Requests:* ${form.notes.trim()}`);
+      lines.push(`Special Requests: ${form.notes.trim()}`);
     }
 
     lines.push('--------------------------------');
@@ -172,9 +230,6 @@ export default function Reservation() {
 
     setTimeout(() => setSuccess(false), 4000);
   };
-
-  // Min date = today
-  const today = new Date().toISOString().split('T')[0];
 
   return (
     <section
@@ -322,7 +377,7 @@ export default function Reservation() {
                 />
               </div>
 
-              {/* Row 2: Phone + Guests (Text/Number Input - supports any party size e.g. 2, 10, 100) */}
+              {/* Row 2: Phone + Guests (Number input supports any count like 2, 8, 25, 100) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FloatingInput
                   id="phone"
@@ -359,34 +414,56 @@ export default function Reservation() {
                   error={errors.date}
                   min={today}
                 />
-                {/* Time select */}
+                {/* Dynamic Time select (strictly upcoming times when today is selected) */}
                 <div className="form-group relative">
                   <select
                     id="time"
                     value={form.time}
                     onChange={handleChange('time')}
                     onBlur={handleBlur('time')}
-                    className={`form-input appearance-none cursor-pointer${errors.time ? ' error' : ''}`}
+                    disabled={isToday && availableSlots.length === 0}
+                    className={`form-input appearance-none cursor-pointer${errors.time ? ' error' : ''} ${
+                      isToday && availableSlots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                     aria-label="Preferred time"
                     aria-describedby={errors.time ? 'time-error' : undefined}
                     aria-invalid={!!errors.time}
                   >
-                    <option value="" className="bg-mehfil-stone"> </option>
-                    {timeSlots.map((slot) => (
-                      <option key={slot} value={slot} className="bg-mehfil-stone text-mehfil-cream">{slot}</option>
+                    <option value="" className="bg-mehfil-stone">
+                      {isToday && availableSlots.length === 0
+                        ? 'All slots for today have closed'
+                        : ''}
+                    </option>
+                    {availableSlots.map((slot) => (
+                      <option key={slot} value={slot} className="bg-mehfil-stone text-mehfil-cream">
+                        {slot}
+                      </option>
                     ))}
                   </select>
                   <label
                     htmlFor="time"
                     className="form-label"
-                    style={form.time ? { transform: 'translateY(-10px) scale(0.78)', color: '#D4A843', transformOrigin: 'left' } : {}}
+                    style={
+                      form.time || (isToday && availableSlots.length === 0)
+                        ? { transform: 'translateY(-10px) scale(0.78)', color: '#D4A843', transformOrigin: 'left' }
+                        : {}
+                    }
                   >
                     Preferred Time *
                   </label>
                   <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  {errors.time && <p id="time-error" className="mt-1 text-xs text-red-400 pl-1" role="alert">{errors.time}</p>}
+                  {errors.time && (
+                    <p id="time-error" className="mt-1 text-xs text-red-400 pl-1" role="alert">
+                      {errors.time}
+                    </p>
+                  )}
+                  {isToday && availableSlots.length === 0 && (
+                    <p className="mt-1 text-[11px] text-amber-400/80 pl-1">
+                      Today's rooftop hours have ended. Please choose tomorrow or an upcoming date.
+                    </p>
+                  )}
                 </div>
               </div>
 
