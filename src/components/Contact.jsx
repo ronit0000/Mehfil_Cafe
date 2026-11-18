@@ -24,8 +24,8 @@ const contactCards = [
       </svg>
     ),
     title: 'Call Us',
-    lines: ['+91 98765 43210', 'Direct Line for Bookings'],
-    action: { label: 'Call Now', href: 'tel:+919876543210' },
+    lines: ['+91 77899 22251', 'Direct Line for Bookings'],
+    action: { label: 'Call Now', href: 'tel:+917789922251' },
   },
   {
     icon: (

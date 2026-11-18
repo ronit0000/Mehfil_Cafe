@@ -158,7 +158,7 @@ export default function Testimonials() {
       style={{ background: 'linear-gradient(180deg, #0F0B05 0%, #0A0A0A 100%)' }}
       aria-label="Guest testimonials and Google reviews"
     >
-      {/* Decorative top edge */}
+      {/* Decorative top border */}
       <div
         aria-hidden="true"
         className="absolute top-0 left-0 right-0 h-px"
@@ -171,69 +171,94 @@ export default function Testimonials() {
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-center mb-10 sm:mb-12"
         >
           <p className="section-subheading mb-2">Guest Love</p>
           <div className="gold-divider" />
           <h2 className="section-heading mt-4">
-            Google Reviews of <span className="font-serif italic text-mehfil-gold">Mehfil</span>
+            Loved on <span className="font-serif italic text-mehfil-gold">Google</span>
           </h2>
           <p className="mt-4 text-mehfil-cream/60 text-sm sm:text-base max-w-xl mx-auto font-light leading-relaxed">
-            Real feedback from verified diners visiting our rooftop in Berhampur.
+            Rated by patrons who dine, celebrate, and unwind under the open sky at Mehfil Berhampur.
           </p>
         </motion.div>
 
-        {/* Google AI / Overview Summary Card */}
+        {/* Redesigned Luxury Trust Bar */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={inView ? { opacity: 1, scale: 1 } : {}}
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.15 }}
-          className="mb-10 rounded-3xl p-5 sm:p-7 glass border border-mehfil-gold/25 relative overflow-hidden"
+          className="glass rounded-3xl p-6 sm:p-8 mb-8 border border-mehfil-gold/20 shadow-card"
         >
-          <div className="flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div
-                className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-serif text-2xl font-bold text-black flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #D4A843, #E8782A)' }}
-              >
-                4.8★
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/5">
+            {/* Rating Metric */}
+            <div className="flex items-center gap-4 text-left">
+              <div className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-white/[0.03] border border-mehfil-gold/30 shadow-glow-sm">
+                <span className="font-serif text-3xl font-bold text-mehfil-gold leading-none">4.8</span>
+                <span className="text-[10px] uppercase text-mehfil-cream/50 tracking-widest mt-1">out of 5</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-semibold text-mehfil-cream">Mehfil Berhampur</h3>
-                  <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-mehfil-gold/15 text-mehfil-gold font-medium border border-mehfil-gold/30">
-                    Google Maps
+                  <StarRating count={4.8} />
+                  <span className="text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
+                    Verified
                   </span>
                 </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <StarRating count={4.8} />
-                  <span className="text-xs text-mehfil-cream/50">(47+ reviews)</span>
-                </div>
+                <p className="text-xs sm:text-sm text-mehfil-cream/60 mt-1">
+                  Based on 47+ verified reviews on Google Maps
+                </p>
               </div>
             </div>
 
+            {/* Direct Link Button */}
             <a
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-outline text-xs py-2.5 px-4 w-full sm:w-auto text-center inline-flex items-center justify-center gap-2"
+              className="group flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-mehfil-gold hover:text-mehfil-cream transition-colors py-2.5 px-4 rounded-full bg-mehfil-gold/10 border border-mehfil-gold/30 hover:border-mehfil-gold"
             >
-              <span>View on Google Maps</span>
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <span>Read on Google Maps</span>
+              <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </a>
           </div>
 
-          <div className="mt-5 pt-4 border-t border-white/5">
-            <p className="text-xs sm:text-sm text-mehfil-cream/70 leading-relaxed italic">
-              "Diners like this cafe's delicious food, especially the mutton biryani, and appreciate the wide variety of options available. They also highlight the beautiful ambiance, with open-air seating and warm fairy lights, creating a perfect spot for chill evenings. Guests mention the excellent service and affordable prices, making it a great place for quality time with friends and family."
-            </p>
+          {/* Diners' Key Highlights Strip */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5">
+            {[
+              {
+                icon: '🍛',
+                title: 'Mutton Biryani',
+                subtitle: 'Most acclaimed dish in reviews',
+              },
+              {
+                icon: '✨',
+                title: 'Open-Air Fairy Lights',
+                subtitle: 'Peaceful night ambiance & views',
+              },
+              {
+                icon: '🤍',
+                title: 'Courteous Staff',
+                subtitle: 'Attentive service & fair prices',
+              },
+            ].map((highlight) => (
+              <div
+                key={highlight.title}
+                className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5"
+              >
+                <span className="text-xl flex-shrink-0">{highlight.icon}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-mehfil-cream truncate">{highlight.title}</p>
+                  <p className="text-[10px] text-mehfil-cream/45 truncate">{highlight.subtitle}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </motion.div>
 
@@ -241,8 +266,8 @@ export default function Testimonials() {
         <div className="flex items-center justify-center gap-2 mb-6 overflow-x-auto no-scrollbar py-1">
           {[
             { id: 'all', label: 'All Reviews (9)' },
-            { id: '5', label: '5.0★ (6)' },
-            { id: 'mixed', label: '4.0★ & 4.5★ (3)' },
+            { id: '5', label: '5.0★ Experiences (6)' },
+            { id: 'mixed', label: '4.5★ & 4.0★ (3)' },
           ].map((item) => (
             <button
               key={item.id}
@@ -261,7 +286,7 @@ export default function Testimonials() {
           ))}
         </div>
 
-        {/* Testimonial card */}
+        {/* Testimonial Card */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}

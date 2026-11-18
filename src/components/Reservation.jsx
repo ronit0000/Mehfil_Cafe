@@ -192,7 +192,7 @@ export default function Reservation() {
                 {
                   icon: '📞',
                   title: 'Reservations & Enquiries',
-                  lines: ['+91 98765 43210', 'reservations@mehfil.in'],
+                  lines: ['+91 77899 22251', 'reservations@mehfil.in'],
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4">
@@ -215,20 +215,6 @@ export default function Reservation() {
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Special offer */}
-            <div
-              className="rounded-2xl p-4"
-              style={{
-                background: 'linear-gradient(135deg, rgba(212,168,67,0.12), rgba(232,120,42,0.08))',
-                border: '1px solid rgba(212,168,67,0.2)',
-              }}
-            >
-              <p className="text-mehfil-gold text-xs font-semibold tracking-wide uppercase mb-1">🎁 Special Offer</p>
-              <p className="text-mehfil-cream/70 text-xs leading-relaxed">
-                Book for 4+ guests and get a complimentary welcome drink for the table!
-              </p>
             </div>
           </motion.aside>
 

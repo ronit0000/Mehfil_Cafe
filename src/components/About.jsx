@@ -155,8 +155,8 @@ export default function About() {
               <p className="text-mehfil-cream/65 leading-relaxed mb-4">
                 Nestled on a rooftop in the heart of Berhampur, Mehfil offers a curated experience where 
                 handcrafted cuisine meets an ambiance that whispers elegance. From the moment you step in, 
-                the neon glow of our signature mandala, the rustling of palms in the breeze, and the aroma 
-                of live charcoal grills set the stage.
+                the neon glow of our signature mandala, the rustling of palms in the breeze, and the warm 
+                glow of fairy lights under the stars set the stage.
               </p>
               <p className="text-mehfil-cream/65 leading-relaxed">
                 Our chefs blend traditional Indian techniques with modern plating, ensuring that each dish 
@@ -168,11 +168,11 @@ export default function About() {
             {/* Features list */}
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                'Live Charcoal Grill',
-                'Rooftop Open Sky',
-                'Curated Cocktail Menu',
+                'Open-Air Rooftop Dining',
+                'Curated Mocktails & Drinks',
                 'Private Dining Available',
                 'Live Music Evenings',
+                'Warm Fairy Lights Ambiance',
                 'Pet-Friendly Seating',
               ].map((feat) => (
                 <li key={feat} className="flex items-center gap-3 text-sm text-mehfil-cream/70">
