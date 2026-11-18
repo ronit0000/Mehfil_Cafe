@@ -1,5 +1,5 @@
 // src/components/Menu.jsx
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { menuPages } from '../data/menuData';
 
@@ -54,43 +54,9 @@ export default function Menu() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
-  // Dynamically generate mobile pages:
-  // Categories with <= 6 items fit on 1 complete page (Soups, Chinese, Mains, Breads, Beverages, etc.)
-  // Categories with > 6 items (Starters with 8 items) split into 2 balanced pages of 4 items each.
-  const mobilePages = useMemo(() => {
-    const pages = [];
-    menuPages.forEach((cat) => {
-      const totalItems = cat.items.length;
-      if (totalItems <= 6) {
-        pages.push({
-          categoryTitle: cat.title,
-          categorySubtitle: cat.subtitle,
-          items: cat.items,
-          part: 1,
-          totalParts: 1,
-        });
-      } else {
-        const chunkSize = Math.ceil(totalItems / 2); // 8 items -> 4 and 4
-        const totalParts = Math.ceil(totalItems / chunkSize);
-        for (let i = 0; i < totalItems; i += chunkSize) {
-          pages.push({
-            categoryTitle: cat.title,
-            categorySubtitle: cat.subtitle,
-            items: cat.items.slice(i, i + chunkSize),
-            part: Math.floor(i / chunkSize) + 1,
-            totalParts,
-          });
-        }
-      }
-    });
-    return pages;
-  }, []);
-
-  const totalDesktopPages = menuPages.length;
-  const totalMobilePages = mobilePages.length;
-
-  const [currentPage, setCurrentPage] = useState(0); // Desktop folios: 0 to 14
-  const [mobilePage, setMobilePage] = useState(0);   // Mobile pages: 0 to 15
+  // Each category is 1 dedicated complete folio (all items on the same page, zero split pages)
+  const totalPages = menuPages.length; // 15 categories
+  const [currentPage, setCurrentPage] = useState(0); // 0 to 14
   const [flipDirection, setFlipDirection] = useState(1);
 
   const touchStartX = useRef(0);
@@ -98,13 +64,7 @@ export default function Menu() {
 
   // Turn forward (swipe left)
   const turnNext = () => {
-    // Mobile navigation
-    if (mobilePage < totalMobilePages - 1) {
-      setFlipDirection(1);
-      setMobilePage((prev) => prev + 1);
-    }
-    // Desktop navigation
-    if (currentPage < totalDesktopPages - 1) {
+    if (currentPage < totalPages - 1) {
       setFlipDirection(1);
       setCurrentPage((prev) => prev + 1);
     }
@@ -112,12 +72,6 @@ export default function Menu() {
 
   // Turn backward (swipe right)
   const turnPrev = () => {
-    // Mobile navigation
-    if (mobilePage > 0) {
-      setFlipDirection(-1);
-      setMobilePage((prev) => prev - 1);
-    }
-    // Desktop navigation
     if (currentPage > 0) {
       setFlipDirection(-1);
       setCurrentPage((prev) => prev - 1);
@@ -155,15 +109,12 @@ export default function Menu() {
     }
   };
 
-  // Desktop Page Data
-  const activeDesktopCategory = menuPages[currentPage];
-  const desktopItems = activeDesktopCategory.items;
-  const halfLength = Math.ceil(desktopItems.length / 2);
-  const leftPageItems = desktopItems.slice(0, halfLength);
-  const rightPageItems = desktopItems.slice(halfLength);
-
-  // Mobile Page Data
-  const currentMobilePage = mobilePages[mobilePage];
+  // Current Category Data
+  const currentCategory = menuPages[currentPage];
+  const allCategoryItems = currentCategory.items;
+  const halfLength = Math.ceil(allCategoryItems.length / 2);
+  const leftPageItems = allCategoryItems.slice(0, halfLength);
+  const rightPageItems = allCategoryItems.slice(halfLength);
 
   // 3D Realistic Book Curl & Page Turn Animation
   const pageFlipVariants = {
@@ -250,10 +201,10 @@ export default function Menu() {
             {/* Book Spine Highlight on Desktop */}
             <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-black/40 via-[#D4A843]/15 to-black/40 pointer-events-none hidden md:block rounded-full blur-[1px]" />
 
-            {/* Animated Royal Parchment Page (Dynamically adapts to mobile screen and laptop) */}
+            {/* Animated Royal Parchment Page */}
             <AnimatePresence mode="wait" custom={flipDirection}>
               <motion.div
-                key={`page-${currentPage}-${mobilePage}`}
+                key={`page-${currentPage}`}
                 custom={flipDirection}
                 variants={pageFlipVariants}
                 initial="initial"
@@ -263,7 +214,7 @@ export default function Menu() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.15}
                 onDragEnd={handleDragEnd}
-                /* Mobile: adapts to viewport height (max 600px). Desktop: generous luxury spread (530px). */
+                /* Mobile: adapts to viewport height. Desktop: generous luxury spread (530px). */
                 className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between h-[calc(100dvh-125px)] max-h-[600px] min-h-[460px] md:h-[530px] md:max-h-[530px]"
                 style={{
                   transformStyle: 'preserve-3d',
@@ -300,15 +251,15 @@ export default function Menu() {
                 {/* MOBILE FOLIO HEADER (Category Title & Subtitle) */}
                 <div className="md:hidden pt-3 pb-1 text-center px-4 relative z-10 shrink-0">
                   <h3 className="font-serif text-xl font-bold text-[#8C5E14] tracking-tight">
-                    {currentMobilePage.categoryTitle}
+                    {currentCategory.title}
                   </h3>
                   <p className="text-[10px] text-[#54483A] italic font-light mt-0.5 max-w-md mx-auto line-clamp-1">
-                    {currentMobilePage.categorySubtitle}
+                    {currentCategory.subtitle}
                   </p>
                   <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#9E6D18]/50 to-transparent mx-auto mt-1" />
                 </div>
 
-                {/* DESKTOP VIEW: Authentic Two-Page Open Book Spread (No spine overlap, balanced fill) */}
+                {/* DESKTOP VIEW: Two-Page Open Book Spread (Left Header, Right Header, Balanced Spacing) */}
                 <div className="hidden md:grid md:grid-cols-2 gap-8 p-7 pt-5 pb-3 relative z-10 flex-1 overflow-hidden">
                   {/* Left Page Column */}
                   <div className="pr-4 flex flex-col justify-between h-full border-r border-[#EADECA]/60">
@@ -316,13 +267,13 @@ export default function Menu() {
                       {/* Left Page Header: Category Title */}
                       <div className="pb-3 mb-3 border-b border-[#EADECA]/80">
                         <span className="text-[10px] uppercase tracking-widest text-[#9E6D18] font-semibold">
-                          Section {currentPage + 1} of {totalDesktopPages}
+                          Section {currentPage + 1} of {totalPages}
                         </span>
                         <h3 className="font-serif text-2xl lg:text-3xl font-bold text-[#8C5E14] leading-tight mt-0.5">
-                          {activeDesktopCategory.title}
+                          {currentCategory.title}
                         </h3>
                         <p className="text-xs text-[#54483A] italic font-light mt-1">
-                          {activeDesktopCategory.subtitle}
+                          {currentCategory.subtitle}
                         </p>
                       </div>
 
@@ -391,7 +342,7 @@ export default function Menu() {
                     </div>
 
                     {/* Royal Heritage Card to fill vertical space when category has few items */}
-                    {desktopItems.length <= 4 && (
+                    {allCategoryItems.length <= 4 && (
                       <div className="mt-3 p-3.5 rounded-xl border border-[#D4A843]/35 bg-[#F5EFE0]/80">
                         <div className="flex items-center gap-1.5 mb-1">
                           <span className="text-[#9E6D18] text-xs">❖</span>
@@ -407,9 +358,9 @@ export default function Menu() {
                   </div>
                 </div>
 
-                {/* MOBILE VIEW: Fits up to 6 items seamlessly, fully utilizing screen height without empty gaps */}
+                {/* MOBILE VIEW: Fits ALL category items on the page (all 8 starters, 6 soups, etc.), zero empty gaps */}
                 <div className="md:hidden px-3.5 py-1.5 space-y-1.5 relative z-10 flex-1 overflow-y-auto no-scrollbar flex flex-col justify-start">
-                  {currentMobilePage.items.map((item) => (
+                  {allCategoryItems.map((item) => (
                     <div
                       key={item.id}
                       className="group pb-1 border-b border-[#EADECA]/70 last:border-b-0"
@@ -430,7 +381,7 @@ export default function Menu() {
                   ))}
 
                   {/* If section has only 3 items, subtle decorative insignia */}
-                  {currentMobilePage.items.length <= 3 && (
+                  {allCategoryItems.length <= 3 && (
                     <div className="flex-1 flex items-center justify-center opacity-30 py-3">
                       <span className="text-xs tracking-widest text-[#9E6D18]">❖ ❖ ❖</span>
                     </div>
@@ -441,10 +392,10 @@ export default function Menu() {
                 <div className="px-4 py-2 sm:py-2.5 border-t border-[#EADECA]/80 relative z-10 bg-[#F5EFE0]/80 flex items-center justify-between shrink-0">
                   <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#735818]">
                     <span className="md:hidden">
-                      Page {mobilePage + 1} of {totalMobilePages}
+                      Page {currentPage + 1} of {totalPages}
                     </span>
                     <span className="hidden md:inline">
-                      Folio {currentPage + 1} of {totalDesktopPages}
+                      Folio {currentPage + 1} of {totalPages}
                     </span>
                   </span>
 
