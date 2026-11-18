@@ -112,16 +112,16 @@ export default function About() {
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-              {/* Overlay badge */}
-              <div className="absolute bottom-6 left-6 glass px-5 py-3 rounded-2xl">
-                <p className="font-script text-2xl text-mehfil-gold leading-none">Open Since 2023</p>
-                <p className="text-xs text-mehfil-cream/60 mt-0.5 tracking-wider uppercase">Berhampur's Finest Rooftop</p>
+              {/* Overlay badge - positioned safely at top-left so it is NEVER covered */}
+              <div className="absolute top-4 left-4 sm:top-6 sm:left-6 glass px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl z-20 shadow-lg border border-mehfil-gold/30">
+                <p className="font-script text-xl sm:text-2xl text-mehfil-gold leading-none">Open Since 2023</p>
+                <p className="text-[10px] sm:text-xs text-mehfil-cream/70 mt-0.5 tracking-wider uppercase font-medium">Berhampur's Finest Rooftop</p>
               </div>
             </div>
 
-            {/* Floating secondary image */}
+            {/* Floating secondary image - moved further down so it never touches or overlaps the badge */}
             <div
-              className="absolute -bottom-6 right-2 sm:-bottom-8 sm:-right-6 w-36 sm:w-56 rounded-2xl overflow-hidden shadow-card border-2 border-mehfil-stone"
+              className="absolute -bottom-16 right-0 sm:-bottom-20 sm:-right-6 w-36 sm:w-52 rounded-2xl overflow-hidden shadow-card border-2 border-mehfil-stone z-10"
               style={{ animation: 'float 7s ease-in-out infinite' }}
             >
               <img

@@ -1,123 +1,151 @@
 // src/components/Gallery.jsx
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useRef, useState, useEffect } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 
-const galleryImages = [
+const storyMoments = [
   {
+    id: 1,
     src: '/images/hero1.jpg',
-    title: 'Neon Mandala Wall',
-    desc: 'Signature warm glowing backdrop framed with living greenery',
-    tag: 'Photo Spot',
-    span: 'col-span-2 row-span-2',
+    tag: 'Signature Photo Spot',
+    title: 'The Illuminated Mandala Wall',
+    location: 'Main Rooftop Deck',
+    story:
+      'The crown jewel of Mehfil’s evening identity: our radiant coffee-mandala emblem glowing in warm neon ambers against a lush botanical hedge. Framed by tropical umbrellas and warm ground uplighting, it is the favorite backdrop for friends and couples capturing their night in Berhampur.',
+    highlight: 'Warm Amber Glow · Living Foliage Backdrop',
   },
   {
+    id: 2,
     src: '/images/hero2.jpg',
-    title: 'Umbrella Seating',
-    desc: 'Open sky dining under the Berhampur night breeze',
-    tag: 'Outdoor Dining',
+    tag: 'Outdoor Dining Sanctuary',
+    title: 'Dining Under the Open Sky',
+    location: 'Central Terrace & Canopies',
+    story:
+      'Wide-span patio umbrellas shelter handcrafted tables with comfortable cushioned seating, offering an uninterrupted view of the Berhampur night sky. As the evening cools, gentle cross-breezes flow across the terrace, making every dinner leisurely and serene.',
+    highlight: 'Open Terrace · Gentle Evening Breeze',
   },
   {
+    id: 3,
     src: '/images/hero3.jpg',
-    title: 'Fairy Light Ambiance',
-    desc: 'Warm ambient lighting with open city view',
-    tag: 'Ambiance',
+    tag: 'Fairy Light Ambiance',
+    title: 'Candlelit Evenings & Golden Lights',
+    location: 'Perimeter Lounges',
+    story:
+      'Strands of warm fairy lights trace the rooftop balustrades, casting a soft, golden shimmer over every table. Designed for peaceful dates, soulful music, and unwinding after a long day with aromatic coffee and hot delicacies.',
+    highlight: 'Starlit Ambiance · Romantic Mood',
   },
   {
+    id: 4,
     src: '/images/hero2.jpg',
-    title: 'Intimate Table Corner',
-    desc: 'Cozy candlelit setup for dates and deep talks',
-    tag: 'Date Spot',
+    tag: 'Celebrated Culinary Craft',
+    title: 'Flavors That Define Berhampur Evenings',
+    location: 'Chef’s Kitchen',
+    story:
+      'From our critically acclaimed tender Mutton Biryani—praised across Google Reviews—to sizzling tandoori platters and rich mocktails, each dish is prepared with fresh local ingredients and authentic artisanal spices.',
+    highlight: 'Acclaimed Biryani · Artisan Spices',
   },
   {
+    id: 5,
+    src: '/images/hero3.jpg',
+    tag: 'Social Gatherings & Warmth',
+    title: 'Where Kindred Souls Gather',
+    location: 'Group Tables & Chill Zone',
+    story:
+      'True to its name, Mehfil is a gathering space built for celebration. From joyful birthday surprises and college reunions to family dinners under the stars, our attentive team ensures every guest feels cherished.',
+    highlight: 'Attentive Staff · Affordable Luxury',
+  },
+  {
+    id: 6,
     src: '/images/hero1.jpg',
-    title: 'Twilight Glow',
-    desc: 'Where the rooftop shines as dusk settles',
-    tag: 'Evening Vibe',
-  },
-  {
-    src: '/images/hero3.jpg',
-    title: 'Rooftop Chill Zone',
-    desc: 'Unwind with friends, family and signature food',
-    tag: 'Celebrations',
+    tag: 'NH Side Twilight Vista',
+    title: 'Twilight Above the City Hustle',
+    location: 'Skyline Terrace',
+    story:
+      'Positioned along the NH corridor in Berhampur, the elevated terrace provides a tranquil vantage point as dusk falls into velvety night. Sip on signature coolers as the city lights shimmer in the distance.',
+    highlight: 'Elevated Views · Night Sky Panorama',
   },
 ];
 
-function GalleryItem({ image, index }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-40px' });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
-      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`relative overflow-hidden rounded-2xl sm:rounded-3xl cursor-pointer group shadow-card border border-white/10 ${image.span || ''}`}
-      style={{ aspectRatio: image.span ? '1/1' : '4/3' }}
-    >
-      {/* Full Photo - 90%+ visible without dark overlays obscuring it */}
-      <img
-        src={image.src}
-        alt={image.title}
-        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
-        loading="lazy"
-      />
-
-      {/* Gentle bottom shadow only for contrast behind the label */}
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
-
-      {/* Top Tag Pill */}
-      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 pointer-events-none">
-        <span className="text-[10px] sm:text-xs tracking-wider uppercase px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-mehfil-gold/30 text-mehfil-gold font-medium shadow-md">
-          {image.tag}
-        </span>
-      </div>
-
-      {/* Sleek Floating Glass Bottom Capsule - compact, useful, does not cover the photo */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
-        transition={{
-          duration: 0.5,
-          delay: 0.15 + (index % 3) * 0.1,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-        className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 pointer-events-none"
-      >
-        <div className="glass px-3 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center justify-between gap-2 shadow-lg group-hover:border-mehfil-gold/40 transition-colors">
-          <div className="min-w-0 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-mehfil-gold flex-shrink-0 animate-pulse" />
-            <p className="text-xs sm:text-sm font-serif text-white font-medium truncate group-hover:text-mehfil-gold transition-colors">
-              {image.title}
-            </p>
-          </div>
-          <span className="text-[10px] text-mehfil-cream/50 truncate hidden sm:inline-block font-light">
-            {image.desc}
-          </span>
-        </div>
-      </motion.div>
-
-      {/* Golden Corner Accent */}
-      <div className="absolute top-3 right-3 w-5 h-5 border-t border-r border-mehfil-gold/30 group-hover:border-mehfil-gold transition-colors duration-300 rounded-tr-lg pointer-events-none" />
-    </motion.div>
-  );
-}
-
 export default function Gallery() {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
+  const inView = useInView(ref, { once: true, margin: '-60px' });
+  const [current, setCurrent] = useState(0);
+  const [direction, setDirection] = useState(1); // 1 = next (right to left), -1 = prev
+  const [isPaused, setIsPaused] = useState(false);
+
+  const total = storyMoments.length;
+  const activeStory = storyMoments[current];
+
+  // Automatic right-to-left continuous slideshow (auto-advances smoothly)
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      setDirection(1);
+      setCurrent((prev) => (prev + 1) % total);
+    }, 4000); // 4-second dwell time for comfortable reading of the photo and story
+
+    return () => clearInterval(interval);
+  }, [isPaused, total]);
+
+  const goToNext = () => {
+    setDirection(1);
+    setCurrent((prev) => (prev + 1) % total);
+  };
+
+  const goToPrev = () => {
+    setDirection(-1);
+    setCurrent((prev) => (prev - 1 + total) % total);
+  };
+
+  const selectStory = (idx) => {
+    setDirection(idx >= current ? 1 : -1);
+    setCurrent(idx);
+  };
+
+  // Slide animation variants for right-to-left motion
+  const slideVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+      scale: 0.98,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.55,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+    exit: (dir) => ({
+      x: dir > 0 ? -80 : 80,
+      opacity: 0,
+      scale: 0.98,
+      transition: {
+        duration: 0.45,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    }),
+  };
 
   return (
     <section
       id="gallery"
       ref={ref}
       className="relative py-20 sm:py-28 overflow-hidden section-bg"
-      aria-label="Photo Gallery"
+      aria-label="Through the Lens - The Mehfil Experience"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+      {/* Decorative ambient backdrop glows */}
+      <div
+        aria-hidden="true"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-mehfil-gold/5 blur-[120px] rounded-full pointer-events-none"
+      />
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 35 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-10 sm:mb-14"
@@ -127,38 +155,173 @@ export default function Gallery() {
           <h2 className="section-heading mt-4">
             The <span className="font-serif italic text-mehfil-gold">Mehfil</span> Experience
           </h2>
-          <p className="mt-4 text-mehfil-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            A visual walkthrough of our rooftop sanctuary in Berhampur. Beautiful seating, ambient night lights, and open skies.
+          <p className="mt-4 text-mehfil-cream/65 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
+            A frame-by-frame visual journey across our open-sky terrace in Berhampur. Explore each corner, its starlit atmosphere, and the story behind the view.
           </p>
         </motion.div>
 
-        {/* Gallery grid with clean, unobtrusive floating capsules */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 auto-rows-[180px] sm:auto-rows-[220px] md:auto-rows-[240px]">
-          {galleryImages.map((image, i) => (
-            <GalleryItem key={i} image={image} index={i} />
-          ))}
-        </div>
-
-        {/* CTA */}
+        {/* Single-Image Showcase & Story Container */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          className="text-center mt-12 sm:mt-14"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
         >
-          <p className="text-mehfil-cream/50 text-xs sm:text-sm mb-4">
-            Follow us for daily evening stories and live rooftop updates
+          {/* Main Visual Display Frame (Single Image at a time) */}
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={activeStory.id}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                className="relative w-full aspect-[16/10] sm:aspect-[16/9] md:aspect-[21/10] max-h-[500px]"
+              >
+                {/* Full Unobstructed High-Res Image */}
+                <img
+                  src={activeStory.src}
+                  alt={activeStory.title}
+                  className="w-full h-full object-cover select-none"
+                  loading="eager"
+                />
+
+                {/* Subtle edge vignette for focus without obscuring the photo */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+
+                {/* Top Badge: Category & Counter */}
+                <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
+                  <span className="text-xs uppercase tracking-wider font-semibold px-3 py-1.5 rounded-full bg-black/65 backdrop-blur-md border border-mehfil-gold/30 text-mehfil-gold shadow-md">
+                    {activeStory.tag}
+                  </span>
+
+                  <span className="text-xs font-mono tracking-widest px-3 py-1 rounded-full bg-black/65 backdrop-blur-md border border-white/10 text-mehfil-cream/80">
+                    {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+                  </span>
+                </div>
+
+                {/* Golden Corner Accents */}
+                <div className="absolute top-3 right-3 w-4 h-4 border-t border-r border-mehfil-gold/40 rounded-tr-md pointer-events-none" />
+                <div className="absolute bottom-3 left-3 w-4 h-4 border-b border-l border-mehfil-gold/40 rounded-bl-md pointer-events-none" />
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Dedicated Story Card - Located directly UNDERNEATH the image */}
+          <div className="mt-4 sm:mt-5 glass rounded-3xl p-6 sm:p-8 border border-mehfil-gold/20 shadow-card relative">
+            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+              {/* Left / Center Story Details */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2.5 mb-2.5">
+                  <span className="w-2 h-2 rounded-full bg-mehfil-gold animate-pulse flex-shrink-0" />
+                  <span className="text-xs uppercase tracking-wider font-medium text-mehfil-gold">
+                    {activeStory.location}
+                  </span>
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`story-${activeStory.id}`}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    transition={{ duration: 0.35, ease: 'easeOut' }}
+                  >
+                    <h3 className="font-serif text-xl sm:text-2xl text-white font-medium mb-3">
+                      {activeStory.title}
+                    </h3>
+                    <p className="text-sm sm:text-base text-mehfil-cream/75 leading-relaxed font-light">
+                      {activeStory.story}
+                    </p>
+
+                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-mehfil-cream/50">
+                      <span className="text-mehfil-gold">✦</span>
+                      <span>{activeStory.highlight}</span>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+
+              {/* Right Navigation & Arrow Controls */}
+              <div className="flex md:flex-col items-center md:items-end justify-between gap-4 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+                {/* Arrow Buttons */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={goToPrev}
+                    aria-label="Previous photo story"
+                    className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <button
+                    onClick={goToNext}
+                    aria-label="Next photo story"
+                    className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Pause/Live Indicator */}
+                <div className="text-[11px] text-mehfil-cream/40 flex items-center gap-1.5 font-light">
+                  <span
+                    className={`inline-block w-1.5 h-1.5 rounded-full ${
+                      isPaused ? 'bg-amber-400' : 'bg-green-400 animate-ping'
+                    }`}
+                  />
+                  <span>{isPaused ? 'Paused on touch' : 'Auto-advancing'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pagination Navigation Dots */}
+            <div className="flex items-center justify-center gap-2 mt-6 pt-5 border-t border-white/5">
+              {storyMoments.map((item, idx) => (
+                <button
+                  key={item.id}
+                  onClick={() => selectStory(idx)}
+                  aria-label={`Go to ${item.title}`}
+                  className={`transition-all duration-300 rounded-full ${
+                    idx === current
+                      ? 'w-7 sm:w-9 h-2 bg-mehfil-gold shadow-glow-sm'
+                      : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Instagram Follow Callout */}
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="text-center mt-10 sm:mt-12"
+        >
+          <p className="text-mehfil-cream/50 text-xs sm:text-sm mb-3">
+            Want to see live rooftop videos and daily evening specials?
           </p>
           <a
             href="https://www.instagram.com/_mehfil_berhampur/"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn-outline inline-flex items-center gap-2.5 text-xs sm:text-sm py-3.5 px-6"
+            className="btn-outline inline-flex items-center gap-2.5 text-xs sm:text-sm py-3 px-6 rounded-full hover:border-mehfil-gold"
           >
-            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-mehfil-gold" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
             </svg>
-            @_mehfil_berhampur
+            <span>Follow @_mehfil_berhampur</span>
           </a>
         </motion.div>
       </div>

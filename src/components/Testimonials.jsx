@@ -149,13 +149,13 @@ export default function Testimonials() {
   const activeIndex = current % (total || 1);
   const activeReview = filteredReviews[activeIndex] || filteredReviews[0];
 
-  // 🎡 Automatic right-to-left wheel movement (advances to next review automatically)
+  // Automatic right-to-left continuous movement (advances to next review automatically)
   useEffect(() => {
     if (isPaused || total <= 1) return;
 
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % total);
-    }, 1800); // 1.8s wheel gap for smooth readability and continuous motion
+    }, 2200); // smooth interval for comfortable reading and continuous motion
 
     return () => clearInterval(timer);
   }, [isPaused, total]);
@@ -248,7 +248,7 @@ export default function Testimonials() {
           </div>
         </motion.div>
 
-        {/* Wheel Status & Filter Controls */}
+        {/* Live Status & Filter Controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5 px-1">
           <div className="flex items-center gap-2 text-xs text-mehfil-gold">
             <span className="relative flex h-2 w-2">
@@ -256,7 +256,7 @@ export default function Testimonials() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-mehfil-gold" />
             </span>
             <span className="text-[11px] uppercase tracking-wider font-medium text-mehfil-cream/70">
-              Live Review Wheel
+              Live Reviews
             </span>
           </div>
 
@@ -285,7 +285,7 @@ export default function Testimonials() {
           </div>
         </div>
 
-        {/* 🎡 Automatic Right-to-Left Revolving Review Wheel */}
+        {/* Automatic Right-to-Left Revolving Reviews */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -355,7 +355,7 @@ export default function Testimonials() {
               </svg>
             </button>
 
-            {/* Revolving Wheel Dots */}
+            {/* Progress Dots */}
             <div className="flex gap-1.5 flex-wrap justify-center max-w-[200px]">
               {filteredReviews.map((_, i) => (
                 <button
