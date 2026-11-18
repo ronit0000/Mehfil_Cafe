@@ -278,7 +278,7 @@ export default function Menu() {
                       </div>
 
                       {/* Left items */}
-                      <div className="space-y-3.5">
+                      <div className="space-y-3.5 overflow-y-auto no-scrollbar max-h-[350px] pr-1">
                         {leftPageItems.map((item) => (
                           <div
                             key={item.id}
@@ -318,7 +318,7 @@ export default function Menu() {
                       </div>
 
                       {/* Right items */}
-                      <div className="space-y-3.5">
+                      <div className="space-y-3.5 overflow-y-auto no-scrollbar max-h-[350px] pr-1">
                         {rightPageItems.map((item) => (
                           <div
                             key={item.id}
