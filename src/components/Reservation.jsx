@@ -404,29 +404,54 @@ export default function Reservation() {
                 />
                 <FloatingInput
                   id="guests"
-                  label="Guests (e.g. 2, 8, 25) *"
+                  label="Number of Guests *"
                   type="number"
+                  inputMode="numeric"
                   min="1"
                   max="1000"
                   value={form.guests}
                   onChange={handleChange('guests')}
                   onBlur={handleBlur('guests')}
                   error={errors.guests}
+                  helperText="Default: 2 guests (edit or type as desired)"
                 />
               </div>
 
               {/* Row 3: Date + Time */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 items-start">
-                <FloatingInput
-                  id="date"
-                  label="Date *"
-                  type="date"
-                  value={form.date}
-                  onChange={handleChange('date')}
-                  onBlur={handleBlur('date')}
-                  error={errors.date}
-                  min={today}
-                />
+                <div className="form-group flex flex-col">
+                  <div className="relative">
+                    <input
+                      id="date"
+                      type="date"
+                      value={form.date}
+                      onChange={handleChange('date')}
+                      onBlur={handleBlur('date')}
+                      min={today}
+                      className={`form-input${errors.date ? ' error' : ''}`}
+                      aria-describedby={errors.date ? 'date-error' : undefined}
+                      aria-invalid={!!errors.date}
+                    />
+                    <label
+                      htmlFor="date"
+                      className="form-label"
+                      style={{
+                        transform: 'translateY(-8px) scale(0.78)',
+                        color: form.date ? '#D4A843' : 'rgba(245, 237, 214, 0.45)',
+                        transformOrigin: 'left',
+                      }}
+                    >
+                      Date *
+                    </label>
+                  </div>
+                  <div className="min-h-[14px] sm:min-h-[18px] mt-0.5 pl-1 text-[11px] sm:text-xs flex items-center">
+                    {errors.date && (
+                      <p id="date-error" className="text-red-400" role="alert">
+                        {errors.date}
+                      </p>
+                    )}
+                  </div>
+                </div>
 
                 {/* Dynamic Time select */}
                 <div className="form-group flex flex-col">

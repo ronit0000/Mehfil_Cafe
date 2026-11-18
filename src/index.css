@@ -158,6 +158,32 @@
     transform-origin: left;
   }
 
+  /* ── Remove number input increaser and decreaser stepper buttons ── */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+  }
+
+  /* ── Mustard Gold Date Picker Calendar Icon ── */
+  input[type="date"] {
+    color-scheme: dark;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(75%) sepia(60%) saturate(850%) hue-rotate(5deg) brightness(100%) contrast(95%);
+    opacity: 0.95;
+    transition: opacity 0.2s ease, filter 0.2s ease;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    filter: invert(90%) sepia(85%) saturate(1200%) hue-rotate(5deg) brightness(110%);
+  }
+
   /* ── Menu card hover ── */
   .menu-card {
     @apply relative rounded-2xl p-5 transition-all duration-300 cursor-default;
