@@ -3,6 +3,8 @@ import { useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import toast from 'react-hot-toast';
 
+const WHATSAPP_PHONE = '917789922251'; // +91 77899 22251
+
 const timeSlots = [
   '11:00 AM', '11:30 AM',
   '12:00 PM', '12:30 PM',
@@ -22,7 +24,6 @@ function FloatingInput({
   return (
     <div className="form-group">
       {children ? (
-        // Select or custom child
         children
       ) : (
         <Tag
@@ -53,7 +54,7 @@ function FloatingInput({
 const initialForm = {
   name: '', email: '', phone: '', guests: '2', date: '', time: '', occasion: '', notes: '',
 };
-const initialErrors = { name: '', email: '', phone: '', date: '', time: '' };
+const initialErrors = { name: '', email: '', phone: '', guests: '', date: '', time: '' };
 
 export default function Reservation() {
   const [form,    setForm]    = useState(initialForm);
@@ -65,11 +66,18 @@ export default function Reservation() {
 
   const validate = () => {
     const e = { ...initialErrors };
-    if (!form.name.trim())             e.name  = 'Please enter your full name.';
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = 'Enter a valid email address.';
-    if (form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) e.phone = 'Enter a valid phone number.';
-    if (!form.date)                    e.date  = 'Please select a date.';
-    if (!form.time)                    e.time  = 'Please select a time slot.';
+    if (!form.name.trim()) e.name = 'Please enter your full name.';
+    if (form.email && !form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      e.email = 'Enter a valid email address.';
+    }
+    if (form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) {
+      e.phone = 'Enter a valid phone number.';
+    }
+    if (!form.guests || Number(form.guests) < 1) {
+      e.guests = 'Please enter the number of guests (min 1).';
+    }
+    if (!form.date) e.date = 'Please select a date.';
+    if (!form.time) e.time = 'Please select a time slot.';
     setErrors(e);
     return Object.values(e).every((v) => !v);
   };
@@ -80,29 +88,70 @@ export default function Reservation() {
   };
 
   const handleBlur = (field) => () => {
-    // Real-time validation on blur
     const e = { ...errors };
-    if (field === 'name'  && !form.name.trim())  e.name  = 'Please enter your full name.';
-    if (field === 'email' && !form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = 'Enter a valid email address.';
-    if (field === 'phone' && form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) e.phone = 'Enter a valid phone number.';
-    if (field === 'date'  && !form.date)  e.date  = 'Please select a date.';
-    if (field === 'time'  && !form.time)  e.time  = 'Please select a time slot.';
+    if (field === 'name' && !form.name.trim()) e.name = 'Please enter your full name.';
+    if (field === 'email' && form.email && !form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      e.email = 'Enter a valid email address.';
+    }
+    if (field === 'phone' && form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) {
+      e.phone = 'Enter a valid phone number.';
+    }
+    if (field === 'guests' && (!form.guests || Number(form.guests) < 1)) {
+      e.guests = 'Please enter number of guests (min 1).';
+    }
+    if (field === 'date' && !form.date) e.date = 'Please select a date.';
+    if (field === 'time' && !form.time) e.time = 'Please select a time slot.';
     setErrors(e);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      toast.error('Please complete all required fields.');
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1800));
+
+    // Build formatted WhatsApp message with customer details ready to send
+    const lines = [
+      '✨ *New Table Reservation Request*',
+      '--------------------------------',
+      `👤 *Name:* ${form.name.trim()}`,
+      `👥 *Number of Guests:* ${form.guests}`,
+      `📅 *Date:* ${form.date}`,
+      `⏰ *Time Slot:* ${form.time}`,
+    ];
+
+    if (form.phone.trim()) {
+      lines.push(`📞 *Contact:* ${form.phone.trim()}`);
+    }
+    if (form.email.trim()) {
+      lines.push(`✉️ *Email:* ${form.email.trim()}`);
+    }
+    if (form.occasion) {
+      lines.push(`🎉 *Occasion:* ${form.occasion}`);
+    }
+    if (form.notes.trim()) {
+      lines.push(`📝 *Special Requests:* ${form.notes.trim()}`);
+    }
+
+    lines.push('--------------------------------');
+    lines.push('Hi Mehfil team, please confirm this rooftop table reservation for us. Thank you!');
+
+    const message = lines.join('\n');
+    const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
+
+    // Open WhatsApp directly with prefilled details
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
     setLoading(false);
     setSuccess(true);
     toast.success(
-      `🎉 Table reserved for ${form.name}! We'll confirm via email shortly.`,
+      `🎉 Opening WhatsApp with your reservation details for ${form.name}!`,
       { duration: 5000 }
     );
-    setForm(initialForm);
+
     setTimeout(() => setSuccess(false), 4000);
   };
 
@@ -148,8 +197,7 @@ export default function Reservation() {
             Book a <span className="font-serif italic text-mehfil-gold">Table</span>
           </h2>
           <p className="mt-5 text-mehfil-cream/55 text-base sm:text-lg max-w-xl mx-auto leading-relaxed font-light">
-            Secure your rooftop experience. We recommend reserving in advance, especially for 
-            weekend evenings and special occasions.
+            Secure your rooftop experience. Confirming your reservation sends your filled details directly to our team via WhatsApp for instant confirmation.
           </p>
         </motion.div>
 
@@ -164,7 +212,7 @@ export default function Reservation() {
             <div>
               <h3 className="font-serif text-xl text-mehfil-cream mb-1">Reservation Details</h3>
               <p className="text-mehfil-cream/50 text-sm leading-relaxed">
-                Fill out the form and our team will confirm your booking within 2 hours.
+                Fill out the form below. Clicking confirm opens WhatsApp with your prefilled details to connect directly with our desk.
               </p>
             </div>
 
@@ -176,7 +224,7 @@ export default function Reservation() {
                   lines: [
                     'Monday – Sunday (Open Daily)',
                     '11:00 AM – 11:00 PM',
-                    'Rooftop open till late evening',
+                    'Open late till 11:00 PM every night',
                   ],
                 },
                 {
@@ -191,8 +239,10 @@ export default function Reservation() {
                 },
                 {
                   icon: '📞',
-                  title: 'Reservations & Enquiries',
+                  title: 'Direct WhatsApp & Call',
                   lines: ['+91 77899 22251', 'reservations@mehfil.in'],
+                  link: 'https://wa.me/917789922251?text=Hi%20Mehfil%20Rooftop%20Cafe%2C%20I%20would%20like%20to%20reserve%20a%20table',
+                  linkText: 'Chat on WhatsApp →',
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4">
@@ -244,7 +294,7 @@ export default function Reservation() {
                 />
                 <FloatingInput
                   id="email"
-                  label="Email Address *"
+                  label="Email Address (optional)"
                   type="email"
                   value={form.email}
                   onChange={handleChange('email')}
@@ -254,7 +304,7 @@ export default function Reservation() {
                 />
               </div>
 
-              {/* Row 2: Phone + Guests */}
+              {/* Row 2: Phone + Guests (Text/Number Input - supports any party size e.g. 2, 10, 100) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FloatingInput
                   id="phone"
@@ -266,29 +316,17 @@ export default function Reservation() {
                   error={errors.phone}
                   autoComplete="tel"
                 />
-                {/* Guests select */}
-                <div className="form-group relative">
-                  <select
-                    id="guests"
-                    value={form.guests}
-                    onChange={handleChange('guests')}
-                    className="form-input appearance-none cursor-pointer"
-                    aria-label="Number of guests"
-                  >
-                    {[1,2,3,4,5,6,7,8,'9+'].map((n) => (
-                      <option key={n} value={n} className="bg-mehfil-stone text-mehfil-cream">
-                        {n} {n === 1 ? 'Guest' : 'Guests'}
-                      </option>
-                    ))}
-                  </select>
-                  <label htmlFor="guests" className="form-label" style={{ transform: 'translateY(-10px) scale(0.78)', color: '#D4A843', transformOrigin: 'left' }}>
-                    Number of Guests
-                  </label>
-                  {/* Chevron */}
-                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
+                <FloatingInput
+                  id="guests"
+                  label="Number of Guests (e.g. 2, 8, 25, 100) *"
+                  type="number"
+                  min="1"
+                  max="1000"
+                  value={form.guests}
+                  onChange={handleChange('guests')}
+                  onBlur={handleBlur('guests')}
+                  error={errors.guests}
+                />
               </div>
 
               {/* Row 3: Date + Time */}
@@ -343,7 +381,7 @@ export default function Reservation() {
                   className="form-input appearance-none cursor-pointer"
                 >
                   <option value="" className="bg-mehfil-stone"> </option>
-                  {['Birthday', 'Anniversary', 'Date Night', 'Business Dinner', 'Family Gathering', 'Other'].map((o) => (
+                  {['Birthday Party', 'Anniversary', 'Date Night', 'Business Dinner', 'Friends Gathering', 'Family Celebration', 'Other'].map((o) => (
                     <option key={o} value={o} className="bg-mehfil-stone text-mehfil-cream">{o}</option>
                   ))}
                 </select>
@@ -362,17 +400,17 @@ export default function Reservation() {
               {/* Notes */}
               <FloatingInput
                 id="notes"
-                label="Special Requests (optional)"
+                label="Special Requests (e.g. rooftop view table, cake arrangement)"
                 as="textarea"
                 value={form.notes}
                 onChange={handleChange('notes')}
               />
 
-              {/* Submit */}
+              {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || success}
-                className="btn-primary w-full relative overflow-hidden mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={loading}
+                className="btn-primary w-full relative overflow-hidden mt-2 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 py-4 text-base shadow-glow-sm"
                 aria-live="polite"
               >
                 {loading ? (
@@ -381,22 +419,28 @@ export default function Reservation() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    Securing Your Table…
+                    Opening WhatsApp…
                   </span>
                 ) : success ? (
-                  <span className="flex items-center justify-center gap-2">
+                  <span className="flex items-center justify-center gap-2 text-green-300 font-semibold">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    Reservation Confirmed!
+                    Opening WhatsApp with Details!
                   </span>
                 ) : (
-                  'Confirm Reservation'
+                  <span className="flex items-center justify-center gap-2.5">
+                    {/* WhatsApp Icon */}
+                    <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    Confirm Reservation via WhatsApp
+                  </span>
                 )}
               </button>
 
-              <p className="text-center text-xs text-mehfil-cream/35 mt-1">
-                By submitting you agree to our cancellation policy. Reservations held for 15 minutes.
+              <p className="text-center text-xs text-mehfil-cream/40 mt-1">
+                Your prefilled reservation details will open in WhatsApp to chat with Mehfil Berhampur (+91 77899 22251).
               </p>
             </form>
           </motion.div>
