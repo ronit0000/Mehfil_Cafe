@@ -1,5 +1,5 @@
 // src/components/Testimonials.jsx
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 
 const GOOGLE_MAPS_URL =
@@ -137,6 +137,7 @@ function StarRating({ count }) {
 export default function Testimonials() {
   const [filter, setFilter] = useState('all');
   const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
@@ -144,11 +145,23 @@ export default function Testimonials() {
     ? reviews
     : reviews.filter((r) => (filter === '5' ? r.rating === 5 : r.rating === 4.5 || r.rating === 4));
 
-  const activeIndex = current % (filteredReviews.length || 1);
+  const total = filteredReviews.length;
+  const activeIndex = current % (total || 1);
   const activeReview = filteredReviews[activeIndex] || filteredReviews[0];
 
-  const prev = () => setCurrent((c) => (c - 1 + filteredReviews.length) % filteredReviews.length);
-  const next = () => setCurrent((c) => (c + 1) % filteredReviews.length);
+  // 🎡 Automatic right-to-left wheel movement (advances to next review automatically)
+  useEffect(() => {
+    if (isPaused || total <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % total);
+    }, 1800); // 1.8s wheel gap for smooth readability and continuous motion
+
+    return () => clearInterval(timer);
+  }, [isPaused, total]);
+
+  const prev = () => setCurrent((c) => (c - 1 + total) % total);
+  const next = () => setCurrent((c) => (c + 1) % total);
 
   return (
     <section
@@ -188,169 +201,161 @@ export default function Testimonials() {
           </p>
         </motion.div>
 
-        {/* Redesigned Luxury Trust Bar */}
+        {/* Google Reviews Paragraph Summary Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.15 }}
           className="glass rounded-3xl p-6 sm:p-8 mb-8 border border-mehfil-gold/20 shadow-card"
         >
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/5">
-            {/* Rating Metric */}
-            <div className="flex items-center gap-4 text-left">
-              <div className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-white/[0.03] border border-mehfil-gold/30 shadow-glow-sm">
-                <span className="font-serif text-3xl font-bold text-mehfil-gold leading-none">4.8</span>
-                <span className="text-[10px] uppercase text-mehfil-cream/50 tracking-widest mt-1">out of 5</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-white/5">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-mehfil-gold/30 flex items-center justify-center font-serif text-2xl font-bold text-mehfil-gold shadow-glow-sm">
+                4.8
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <StarRating count={4.8} />
                   <span className="text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">
-                    Verified
+                    47+ Google Reviews
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-mehfil-cream/60 mt-1">
-                  Based on 47+ verified reviews on Google Maps
+                <p className="text-xs text-mehfil-cream/50 mt-0.5">
+                  Google Maps · Mehfil Berhampur
                 </p>
               </div>
             </div>
 
-            {/* Direct Link Button */}
             <a
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-mehfil-gold hover:text-mehfil-cream transition-colors py-2.5 px-4 rounded-full bg-mehfil-gold/10 border border-mehfil-gold/30 hover:border-mehfil-gold"
+              className="text-xs font-semibold tracking-wider uppercase text-mehfil-gold hover:text-mehfil-cream transition-colors py-2 px-4 rounded-full bg-mehfil-gold/10 border border-mehfil-gold/30 hover:border-mehfil-gold inline-flex items-center gap-1.5"
             >
-              <span>Read on Google Maps</span>
-              <svg className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              <span>View on Maps</span>
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
           </div>
 
-          {/* Diners' Key Highlights Strip */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-5">
-            {[
-              {
-                icon: '🍛',
-                title: 'Mutton Biryani',
-                subtitle: 'Most acclaimed dish in reviews',
-              },
-              {
-                icon: '✨',
-                title: 'Open-Air Fairy Lights',
-                subtitle: 'Peaceful night ambiance & views',
-              },
-              {
-                icon: '🤍',
-                title: 'Courteous Staff',
-                subtitle: 'Attentive service & fair prices',
-              },
-            ].map((highlight) => (
-              <div
-                key={highlight.title}
-                className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/5"
-              >
-                <span className="text-xl flex-shrink-0">{highlight.icon}</span>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-mehfil-cream truncate">{highlight.title}</p>
-                  <p className="text-[10px] text-mehfil-cream/45 truncate">{highlight.subtitle}</p>
-                </div>
-              </div>
-            ))}
+          {/* Full Paragraph Review from Google Maps */}
+          <div className="pt-4 flex items-start gap-3">
+            <span className="text-mehfil-gold text-2xl font-serif leading-none mt-1 select-none">“</span>
+            <p className="text-xs sm:text-sm text-mehfil-cream/80 leading-relaxed font-light italic">
+              Diners like this cafe's delicious food, especially the mutton biryani, and appreciate the wide variety of options available. They also highlight the beautiful ambiance, with open-air seating and warm fairy lights, creating a perfect spot for chill evenings. Guests mention the excellent service and affordable prices, making it a great place for quality time with friends and family.
+            </p>
           </div>
         </motion.div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center justify-center gap-2 mb-6 overflow-x-auto no-scrollbar py-1">
-          {[
-            { id: 'all', label: 'All Reviews (9)' },
-            { id: '5', label: '5.0★ Experiences (6)' },
-            { id: 'mixed', label: '4.5★ & 4.0★ (3)' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setFilter(item.id);
-                setCurrent(0);
-              }}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
-                filter === item.id
-                  ? 'bg-mehfil-gold text-black font-semibold shadow-glow-sm'
-                  : 'bg-white/5 text-mehfil-cream/60 hover:text-mehfil-gold border border-white/10'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        {/* Wheel Status & Filter Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5 px-1">
+          <div className="flex items-center gap-2 text-xs text-mehfil-gold">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-mehfil-gold opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-mehfil-gold" />
+            </span>
+            <span className="text-[11px] uppercase tracking-wider font-medium text-mehfil-cream/70">
+              Live Review Wheel
+            </span>
+          </div>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {[
+              { id: 'all', label: 'All Reviews' },
+              { id: '5', label: '5★ Only' },
+              { id: 'mixed', label: '4★ & 4.5★' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setFilter(item.id);
+                  setCurrent(0);
+                }}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  filter === item.id
+                    ? 'bg-mehfil-gold text-black font-semibold shadow-glow-sm'
+                    : 'bg-white/5 text-mehfil-cream/60 hover:text-mehfil-gold border border-white/10'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Testimonial Card */}
+        {/* 🎡 Automatic Right-to-Left Revolving Review Wheel */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={() => setIsPaused(true)}
+          onTouchEnd={() => setIsPaused(false)}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${filter}-${activeIndex}`}
-              initial={{ opacity: 0, x: 25 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -25 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="glass rounded-3xl p-6 sm:p-9 shadow-card relative border border-white/10"
-            >
-              <div className="flex items-center justify-between gap-2 mb-4">
-                <StarRating count={activeReview.rating} />
-                <span className="text-[10px] tracking-wide px-2.5 py-1 rounded-full bg-white/5 border border-mehfil-gold/20 text-mehfil-gold font-medium">
-                  {activeReview.tag}
-                </span>
-              </div>
-
-              <p className="text-mehfil-cream/85 text-sm sm:text-base md:text-lg leading-relaxed mb-6 font-light italic">
-                "{activeReview.text}"
-              </p>
-
-              <div className="flex items-center gap-3.5 pt-4 border-t border-white/5">
-                {/* Avatar */}
-                <div
-                  className="w-11 h-11 rounded-full flex items-center justify-center font-serif text-lg font-semibold text-black flex-shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #D4A843, #E8782A)' }}
-                  aria-hidden="true"
-                >
-                  {activeReview.avatar}
+          <div className="overflow-hidden rounded-3xl">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${filter}-${activeIndex}`}
+                initial={{ opacity: 0, x: 80 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -80 }}
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="glass rounded-3xl p-6 sm:p-9 shadow-card relative border border-white/10"
+              >
+                <div className="flex items-center justify-between gap-2 mb-4">
+                  <StarRating count={activeReview.rating} />
+                  <span className="text-[10px] tracking-wide px-2.5 py-1 rounded-full bg-white/5 border border-mehfil-gold/20 text-mehfil-gold font-medium">
+                    {activeReview.tag}
+                  </span>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-mehfil-cream text-sm truncate">{activeReview.name}</p>
-                  <p className="text-xs text-mehfil-cream/50 mt-0.5 truncate">
-                    {activeReview.role} · {activeReview.date}
-                  </p>
-                </div>
-                <div className="hidden sm:flex items-center gap-1 text-green-400 text-xs">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Verified
-                </div>
-              </div>
-            </motion.div>
-          </AnimatePresence>
 
-          {/* Controls: min 44px tap targets for mobile */}
+                <p className="text-mehfil-cream/90 text-sm sm:text-base md:text-lg leading-relaxed mb-6 font-light italic min-h-[4rem] flex items-center">
+                  "{activeReview.text}"
+                </p>
+
+                <div className="flex items-center gap-3.5 pt-4 border-t border-white/5">
+                  {/* Avatar */}
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center font-serif text-lg font-semibold text-black flex-shrink-0"
+                    style={{ background: 'linear-gradient(135deg, #D4A843, #E8782A)' }}
+                    aria-hidden="true"
+                  >
+                    {activeReview.avatar}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-mehfil-cream text-sm truncate">{activeReview.name}</p>
+                    <p className="text-xs text-mehfil-cream/50 mt-0.5 truncate">
+                      {activeReview.role} · {activeReview.date}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1 text-green-400 text-xs">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Verified
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Navigation Controls & Dot Track */}
           <div className="flex items-center justify-between mt-6 px-1">
             <button
               onClick={prev}
               aria-label="Previous review"
-              className="w-12 h-12 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/10 active:scale-95 transition-all duration-200"
+              className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/10 active:scale-95 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
 
-            {/* Dots */}
+            {/* Revolving Wheel Dots */}
             <div className="flex gap-1.5 flex-wrap justify-center max-w-[200px]">
               {filteredReviews.map((_, i) => (
                 <button
@@ -367,7 +372,7 @@ export default function Testimonials() {
             <button
               onClick={next}
               aria-label="Next review"
-              className="w-12 h-12 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/10 active:scale-95 transition-all duration-200"
+              className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/10 active:scale-95 transition-all duration-200"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

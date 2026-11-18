@@ -5,39 +5,39 @@ import { motion, useInView } from 'framer-motion';
 const galleryImages = [
   {
     src: '/images/hero1.jpg',
-    title: 'The Iconic Neon Mandala Wall',
-    desc: 'Signature warm glowing backdrop framed with lush living greenery',
+    title: 'Neon Mandala Wall',
+    desc: 'Signature warm glowing backdrop framed with living greenery',
     tag: 'Photo Spot',
     span: 'col-span-2 row-span-2',
   },
   {
     src: '/images/hero2.jpg',
-    title: 'Open Sky Umbrella Seating',
-    desc: 'Spacious dining under the Berhampur night sky',
+    title: 'Umbrella Seating',
+    desc: 'Open sky dining under the Berhampur night breeze',
     tag: 'Outdoor Dining',
   },
   {
     src: '/images/hero3.jpg',
-    title: 'Rooftop Chill Evenings',
-    desc: 'Warm ambient fairy lights with open breezeway',
+    title: 'Fairy Light Ambiance',
+    desc: 'Warm ambient lighting with open city view',
     tag: 'Ambiance',
   },
   {
     src: '/images/hero2.jpg',
-    title: 'Intimate Table Settings',
-    desc: 'Perfect for cozy dates and candid conversations',
+    title: 'Intimate Table Corner',
+    desc: 'Cozy candlelit setup for dates and deep talks',
     tag: 'Date Spot',
   },
   {
     src: '/images/hero1.jpg',
-    title: 'Nightfall at Mehfil',
-    desc: 'Where the rooftop comes alive as twilight settles',
-    tag: 'Evening Glow',
+    title: 'Twilight Glow',
+    desc: 'Where the rooftop shines as dusk settles',
+    tag: 'Evening Vibe',
   },
   {
     src: '/images/hero3.jpg',
-    title: 'Memorable Gatherings',
-    desc: 'Quality time with friends, family and great food',
+    title: 'Rooftop Chill Zone',
+    desc: 'Unwind with friends, family and signature food',
     tag: 'Celebrations',
   },
 ];
@@ -49,50 +49,52 @@ function GalleryItem({ image, index }) {
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.7, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      className={`relative overflow-hidden rounded-2xl sm:rounded-3xl cursor-pointer group shadow-card border border-white/5 ${image.span || ''}`}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={inView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.6, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className={`relative overflow-hidden rounded-2xl sm:rounded-3xl cursor-pointer group shadow-card border border-white/10 ${image.span || ''}`}
       style={{ aspectRatio: image.span ? '1/1' : '4/3' }}
     >
-      {/* Photo */}
+      {/* Full Photo - 90%+ visible without dark overlays obscuring it */}
       <img
         src={image.src}
         alt={image.title}
-        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
         loading="lazy"
       />
 
-      {/* Top subtle vignette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent pointer-events-none" />
+      {/* Gentle bottom shadow only for contrast behind the label */}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
-      {/* Tag badge (always visible) */}
-      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
-        <span className="text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-mehfil-gold/30 text-mehfil-gold font-medium">
+      {/* Top Tag Pill */}
+      <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 pointer-events-none">
+        <span className="text-[10px] sm:text-xs tracking-wider uppercase px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-mehfil-gold/30 text-mehfil-gold font-medium shadow-md">
           {image.tag}
         </span>
       </div>
 
-      {/* Automatic Scroll-Triggered Description Card */}
+      {/* Sleek Floating Glass Bottom Capsule - compact, useful, does not cover the photo */}
       <motion.div
-        initial={{ opacity: 0, y: 35 }}
-        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 35 }}
+        initial={{ opacity: 0, y: 15 }}
+        animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 15 }}
         transition={{
-          duration: 0.65,
-          delay: 0.25 + (index % 3) * 0.12,
+          duration: 0.5,
+          delay: 0.15 + (index % 3) * 0.1,
           ease: [0.22, 1, 0.36, 1],
         }}
-        className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-10 sm:pt-14 z-10"
+        className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-3.5 sm:left-3.5 sm:right-3.5 z-10 pointer-events-none"
       >
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-1.5 h-1.5 rounded-full bg-mehfil-gold" />
-          <h3 className="font-serif text-sm sm:text-base lg:text-lg text-white font-medium leading-snug group-hover:text-mehfil-gold transition-colors">
-            {image.title}
-          </h3>
+        <div className="glass px-3 py-2 rounded-xl backdrop-blur-md border border-white/10 flex items-center justify-between gap-2 shadow-lg group-hover:border-mehfil-gold/40 transition-colors">
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-mehfil-gold flex-shrink-0 animate-pulse" />
+            <p className="text-xs sm:text-sm font-serif text-white font-medium truncate group-hover:text-mehfil-gold transition-colors">
+              {image.title}
+            </p>
+          </div>
+          <span className="text-[10px] text-mehfil-cream/50 truncate hidden sm:inline-block font-light">
+            {image.desc}
+          </span>
         </div>
-        <p className="text-[11px] sm:text-xs text-mehfil-cream/70 font-light leading-relaxed line-clamp-2">
-          {image.desc}
-        </p>
       </motion.div>
 
       {/* Golden Corner Accent */}
@@ -118,7 +120,7 @@ export default function Gallery() {
           initial={{ opacity: 0, y: 40 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-10 sm:mb-14"
         >
           <p className="section-subheading mb-2">Through the Lens</p>
           <div className="gold-divider" />
@@ -126,11 +128,11 @@ export default function Gallery() {
             The <span className="font-serif italic text-mehfil-gold">Mehfil</span> Experience
           </h2>
           <p className="mt-4 text-mehfil-cream/60 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            A visual walkthrough of our rooftop sanctuary in Berhampur. As you scroll, explore each intimate corner and night vista.
+            A visual walkthrough of our rooftop sanctuary in Berhampur. Beautiful seating, ambient night lights, and open skies.
           </p>
         </motion.div>
 
-        {/* Gallery grid with automatic scroll reveal */}
+        {/* Gallery grid with clean, unobtrusive floating capsules */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 auto-rows-[180px] sm:auto-rows-[220px] md:auto-rows-[240px]">
           {galleryImages.map((image, i) => (
             <GalleryItem key={i} image={image} index={i} />
