@@ -113,27 +113,45 @@ export default function Reservation() {
 
     setLoading(true);
 
-    // Build formatted WhatsApp message with customer details ready to send
+    // Format date in clean readable format
+    let formattedDate = form.date;
+    try {
+      if (form.date) {
+        const [year, month, day] = form.date.split('-');
+        const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
+        formattedDate = dateObj.toLocaleDateString('en-IN', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        });
+      }
+    } catch {
+      formattedDate = form.date;
+    }
+
+    // Build clean WhatsApp message (no fragile emoji surrogate pairs to prevent  encoding errors)
     const lines = [
-      '✨ *New Table Reservation Request*',
+      '*MEHFIL ROOFTOP CAFE & RESTRO*',
+      '*Table Reservation Request*',
       '--------------------------------',
-      `👤 *Name:* ${form.name.trim()}`,
-      `👥 *Number of Guests:* ${form.guests}`,
-      `📅 *Date:* ${form.date}`,
-      `⏰ *Time Slot:* ${form.time}`,
+      `*Name:* ${form.name.trim()}`,
+      `*Number of Guests:* ${form.guests}`,
+      `*Date:* ${formattedDate}`,
+      `*Time Slot:* ${form.time}`,
     ];
 
     if (form.phone.trim()) {
-      lines.push(`📞 *Contact:* ${form.phone.trim()}`);
+      lines.push(`*Contact:* ${form.phone.trim()}`);
     }
     if (form.email.trim()) {
-      lines.push(`✉️ *Email:* ${form.email.trim()}`);
+      lines.push(`*Email:* ${form.email.trim()}`);
     }
     if (form.occasion) {
-      lines.push(`🎉 *Occasion:* ${form.occasion}`);
+      lines.push(`*Occasion:* ${form.occasion}`);
     }
     if (form.notes.trim()) {
-      lines.push(`📝 *Special Requests:* ${form.notes.trim()}`);
+      lines.push(`*Special Requests:* ${form.notes.trim()}`);
     }
 
     lines.push('--------------------------------');
