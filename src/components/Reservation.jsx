@@ -287,84 +287,18 @@ export default function Reservation() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 sm:gap-8 items-start">
-          {/* Info sidebar */}
-          <motion.aside
-            initial={{ opacity: 0, x: -30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-2 glass rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-7 flex flex-col gap-3.5 sm:gap-6"
-          >
-            <div>
-              <h3 className="font-serif text-base sm:text-xl text-mehfil-cream mb-0.5">Reservation Details</h3>
-              <p className="text-mehfil-cream/50 text-xs sm:text-sm leading-relaxed">
-                Fill out the form below. Clicking confirm opens WhatsApp with your prefilled details to connect directly with our desk.
-              </p>
-            </div>
-
-            <div className="space-y-3 sm:space-y-5">
-              {[
-                {
-                  icon: '🕐',
-                  title: 'Opening Hours',
-                  lines: [
-                    'Monday – Sunday (Open Daily)',
-                    '11:00 AM – 11:00 PM',
-                    'Open late till 11:00 PM every night',
-                  ],
-                },
-                {
-                  icon: '📍',
-                  title: 'Location',
-                  lines: [
-                    'Mehfil Berhampur',
-                    'Near NH Side, Berhampur, Odisha',
-                  ],
-                  link: 'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D',
-                  linkText: 'View on Maps →',
-                },
-                {
-                  icon: '📞',
-                  title: 'Direct WhatsApp & Call',
-                  lines: ['+91 77899 22251', 'reservations@mehfil.in'],
-                  link: 'https://wa.me/917789922251?text=Hi%20Mehfil%20Rooftop%20Cafe%2C%20I%20would%20like%20to%20reserve%20a%20table',
-                  linkText: 'Chat on WhatsApp →',
-                },
-              ].map((item) => (
-                <div key={item.title} className="flex gap-3 sm:gap-4">
-                  <span className="text-lg sm:text-xl mt-0.5 flex-shrink-0">{item.icon}</span>
-                  <div>
-                    <p className="text-mehfil-gold text-xs sm:text-sm font-semibold mb-0.5">{item.title}</p>
-                    {item.lines.map((line) => (
-                      <p key={line} className="text-mehfil-cream/55 text-[11px] sm:text-xs leading-normal sm:leading-relaxed">{line}</p>
-                    ))}
-                    {item.link && (
-                      <a
-                        href={item.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[11px] sm:text-xs text-mehfil-gold hover:underline mt-0.5 inline-block"
-                      >
-                        {item.linkText}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.aside>
-
+        <div className="max-w-2xl mx-auto w-full">
           {/* Reservation Form */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="lg:col-span-3"
+            initial={{ opacity: 0, y: 25 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="w-full"
           >
             <form
               onSubmit={handleSubmit}
               noValidate
-              className="glass-light rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col gap-1 sm:gap-1.5"
+              className="glass-light rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 flex flex-col gap-1 sm:gap-1.5 shadow-2xl"
               aria-label="Table reservation form"
             >
               {/* Row 1: Name + Email */}

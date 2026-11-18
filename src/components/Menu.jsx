@@ -409,13 +409,6 @@ export default function Menu() {
 
                 {/* Grand Folio Header */}
                 <div className="pt-3.5 sm:pt-6 pb-2 text-center px-4 sm:px-8 relative z-10 shrink-0 border-b border-[#EADECA]/80">
-                  {currentFolio.totalParts > 1 && (
-                    <div className="flex justify-end mb-1">
-                      <span className="text-[9.5px] sm:text-[11px] font-mono text-[#8C5E14] bg-[#D4A843]/15 px-2.5 py-0.5 rounded-full border border-[#D4A843]/30">
-                        Part {currentFolio.part} of {currentFolio.totalParts}
-                      </span>
-                    </div>
-                  )}
                   <h3 className="font-serif text-xl sm:text-3xl lg:text-4xl font-bold text-[#8C5E14] tracking-tight">
                     {currentFolio.categoryTitle}
                   </h3>
