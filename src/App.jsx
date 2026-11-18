@@ -72,7 +72,7 @@ export default function App() {
     <>
       <ScrollProgress />
       <Navbar />
-      <main>
+      <main className="overflow-x-clip w-full max-w-full">
         <Hero />
         <About />
         <Menu />

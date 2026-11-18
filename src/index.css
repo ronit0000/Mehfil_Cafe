@@ -12,6 +12,9 @@
     background-color: #0A0A0A;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
   }
 
   body {
@@ -25,6 +28,10 @@
     transform: translateZ(0);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
   }
 }
 
@@ -138,7 +145,7 @@
     @apply relative;
   }
   .form-input {
-    @apply w-full bg-transparent border border-white/10 rounded-xl px-3.5 sm:px-4 pt-4 sm:pt-5 pb-1.5 sm:pb-2 text-mehfil-cream text-xs sm:text-sm outline-none transition-all duration-300;
+    @apply w-full bg-transparent border border-white/10 rounded-xl px-3.5 sm:px-4 pt-4 sm:pt-5 pb-1.5 sm:pb-2 text-mehfil-cream text-sm outline-none transition-all duration-300;
     font-family: 'Inter', sans-serif;
     -webkit-appearance: none;
   }
@@ -151,7 +158,7 @@
   }
   .form-input:focus ~ .form-label,
   .form-input:not(:placeholder-shown) ~ .form-label {
-    transform: translateY(-7px) scale(0.75);
+    transform: translateY(-8px) scale(0.78);
     color: #D4A843;
     transform-origin: left;
   }

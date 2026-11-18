@@ -17,10 +17,10 @@
       rel="stylesheet"
     />
     <style>
-      /* Prevent FOUC / layout shifts */
+      /* Prevent FOUC / layout shifts / mobile viewport blowout */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-      html { scroll-behavior: smooth; }
-      body { background: #0A0A0A; color: #F5EDD6; overflow-x: hidden; }
+      html { scroll-behavior: smooth; overflow-x: hidden; width: 100%; max-width: 100%; }
+      body { background: #0A0A0A; color: #F5EDD6; overflow-x: hidden; width: 100%; max-width: 100%; position: relative; }
       /* Custom scrollbar */
       ::-webkit-scrollbar { width: 6px; }
       ::-webkit-scrollbar-track { background: #111; }

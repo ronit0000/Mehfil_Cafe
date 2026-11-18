@@ -460,7 +460,7 @@ export default function Reservation() {
                       htmlFor="time"
                       className="form-label"
                       style={{
-                        transform: 'translateY(-7px) scale(0.75)',
+                        transform: 'translateY(-8px) scale(0.78)',
                         color: form.time ? '#D4A843' : 'rgba(245, 237, 214, 0.45)',
                         transformOrigin: 'left',
                       }}
@@ -511,7 +511,7 @@ export default function Reservation() {
                     htmlFor="occasion"
                     className="form-label"
                     style={{
-                      transform: 'translateY(-7px) scale(0.75)',
+                      transform: 'translateY(-8px) scale(0.78)',
                       color: form.occasion ? '#D4A843' : 'rgba(245, 237, 214, 0.45)',
                       transformOrigin: 'left',
                     }}
@@ -538,7 +538,7 @@ export default function Reservation() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full relative overflow-hidden mt-1 sm:mt-2.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-sm uppercase tracking-wider text-[#0A0A0A] bg-gradient-to-r from-[#D4A843] via-[#E8782A] to-[#D4A843] bg-[length:200%_auto] hover:bg-right transition-all duration-300 shadow-[0_4px_20px_rgba(212,168,67,0.35)] cursor-pointer"
+                className="w-full relative overflow-hidden mt-1 sm:mt-2.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl font-semibold text-sm uppercase tracking-wider text-[#0A0A0A] bg-gradient-to-r from-[#D4A843] via-[#E8782A] to-[#D4A843] bg-[length:200%_auto] hover:bg-right transition-all duration-300 shadow-[0_4px_20px_rgba(212,168,67,0.35)] cursor-pointer"
                 aria-live="polite"
               >
                 {loading ? (
@@ -567,7 +567,7 @@ export default function Reservation() {
                 )}
               </button>
 
-              <p className="text-center text-[10px] sm:text-xs text-mehfil-cream/50 mt-1 max-w-xs sm:max-w-md mx-auto leading-normal">
+              <p className="text-center text-xs text-mehfil-cream/55 mt-1.5 max-w-xs sm:max-w-md mx-auto leading-normal">
                 Your prefilled reservation details will open in WhatsApp to chat with Mehfil Berhampur (+91 77899 22251).
               </p>
             </form>
