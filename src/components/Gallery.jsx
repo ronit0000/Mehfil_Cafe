@@ -74,6 +74,7 @@ export default function Gallery() {
   const [direction, setDirection] = useState(1);
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const pointerStartTime = useRef(0);
 
   const total = storyMoments.length;
   const activeStory = storyMoments[current];
@@ -89,12 +90,6 @@ export default function Gallery() {
     setProgress(0);
     setCurrent((prev) => (prev - 1 + total) % total);
   }, [total]);
-
-  const selectStory = (idx) => {
-    setDirection(idx >= current ? 1 : -1);
-    setProgress(0);
-    setCurrent(idx);
-  };
 
   // Instagram story-style progress & hold-to-pause
   // Moves automatically, pauses completely while finger is held on screen
@@ -117,9 +112,30 @@ export default function Gallery() {
     return () => clearInterval(timer);
   }, [isHolding, goToNext]);
 
-  // Hold-to-pause handlers (like Instagram stories)
-  const handleHoldStart = () => setIsHolding(true);
-  const handleHoldEnd = () => setIsHolding(false);
+  // Pointer interactions: tap left/right to skip, hold to pause
+  const handlePointerDown = () => {
+    pointerStartTime.current = Date.now();
+    setIsHolding(true);
+  };
+
+  const handlePointerUp = (e) => {
+    setIsHolding(false);
+    const duration = Date.now() - pointerStartTime.current;
+    // If it was a quick tap (< 220ms), navigate left or right like Instagram Stories
+    if (duration < 220 && e.currentTarget) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX < rect.width * 0.35) {
+        goToPrev();
+      } else {
+        goToNext();
+      }
+    }
+  };
+
+  const handlePointerCancel = () => {
+    setIsHolding(false);
+  };
 
   // Slide animation variants for right-to-left motion
   const slideVariants = {
@@ -175,7 +191,7 @@ export default function Gallery() {
             The <span className="font-serif italic text-mehfil-gold">Mehfil</span> Experience
           </h2>
           <p className="mt-4 text-mehfil-cream/65 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            A frame-by-frame visual journey across our open-sky terrace in Berhampur. Tap and hold anywhere on the photo to pause.
+            A visual walkthrough across our open-sky terrace in Berhampur. Tap left/right to explore, or hold anywhere to pause.
           </p>
         </motion.div>
 
@@ -189,16 +205,10 @@ export default function Gallery() {
           {/* Main Visual Display Frame (Single Image at a time) */}
           <div
             className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40 touch-none cursor-pointer"
-            onPointerDown={handleHoldStart}
-            onPointerUp={handleHoldEnd}
-            onPointerLeave={handleHoldEnd}
-            onPointerCancel={handleHoldEnd}
-            onTouchStart={handleHoldStart}
-            onTouchEnd={handleHoldEnd}
-            onTouchCancel={handleHoldEnd}
-            onMouseDown={handleHoldStart}
-            onMouseUp={handleHoldEnd}
-            onMouseLeave={handleHoldEnd}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerCancel}
+            onPointerCancel={handlePointerCancel}
           >
             {/* Instagram Story Progress Segments at Top */}
             <div className="absolute top-3 left-4 right-4 z-20 flex gap-1.5 pointer-events-none">
@@ -264,78 +274,39 @@ export default function Gallery() {
 
           {/* Dedicated Story Card - Located directly UNDERNEATH the image */}
           <div className="mt-4 sm:mt-5 glass rounded-3xl p-6 sm:p-8 border border-mehfil-gold/20 shadow-card relative">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-              {/* Left / Center Story Details */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2.5 mb-2.5">
-                  <span className="w-2 h-2 rounded-full bg-mehfil-gold animate-pulse flex-shrink-0" />
-                  <span className="text-xs uppercase tracking-wider font-medium text-mehfil-gold">
-                    {activeStory.location}
+            <div className="flex items-center gap-2.5 mb-2.5">
+              <span className="w-2 h-2 rounded-full bg-mehfil-gold animate-pulse flex-shrink-0" />
+              <span className="text-xs uppercase tracking-wider font-medium text-mehfil-gold">
+                {activeStory.location}
+              </span>
+            </div>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`story-${activeStory.id}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+              >
+                <h3 className="font-serif text-xl sm:text-2xl text-white font-medium mb-3">
+                  {activeStory.title}
+                </h3>
+                <p className="text-sm sm:text-base text-mehfil-cream/75 leading-relaxed font-light">
+                  {activeStory.story}
+                </p>
+
+                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-mehfil-cream/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-mehfil-gold">✦</span>
+                    <span>{activeStory.highlight}</span>
+                  </div>
+                  <span className="font-mono text-mehfil-cream/40">
+                    {String(current + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
                   </span>
                 </div>
-
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`story-${activeStory.id}`}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -12 }}
-                    transition={{ duration: 0.35, ease: 'easeOut' }}
-                  >
-                    <h3 className="font-serif text-xl sm:text-2xl text-white font-medium mb-3">
-                      {activeStory.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-mehfil-cream/75 leading-relaxed font-light">
-                      {activeStory.story}
-                    </p>
-
-                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2 text-xs text-mehfil-cream/50">
-                      <span className="text-mehfil-gold">✦</span>
-                      <span>{activeStory.highlight}</span>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Right Navigation Controls */}
-              <div className="flex items-center justify-end gap-3 flex-shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-                <button
-                  onClick={goToPrev}
-                  aria-label="Previous photo story"
-                  className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-
-                <button
-                  onClick={goToNext}
-                  aria-label="Next photo story"
-                  className="w-11 h-11 rounded-full border border-mehfil-gold/30 flex items-center justify-center text-mehfil-gold hover:bg-mehfil-gold/15 active:scale-95 transition-all duration-200"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Pagination Navigation Dots */}
-            <div className="flex items-center justify-center gap-2 mt-6 pt-5 border-t border-white/5">
-              {storyMoments.map((item, idx) => (
-                <button
-                  key={item.id}
-                  onClick={() => selectStory(idx)}
-                  aria-label={`Go to ${item.title}`}
-                  className={`transition-all duration-300 rounded-full ${
-                    idx === current
-                      ? 'w-7 sm:w-9 h-2 bg-mehfil-gold shadow-glow-sm'
-                      : 'w-2 h-2 bg-white/20 hover:bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </motion.div>
 

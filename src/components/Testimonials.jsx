@@ -5,7 +5,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 const GOOGLE_MAPS_URL =
   'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D';
 
-// Official multi-colored Google 'G' icon for 100% authentic Google styling
+// Official multi-colored Google 'G' icon for authentic Google styling
 function GoogleLogo({ className = 'w-5 h-5' }) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
@@ -212,6 +212,7 @@ export default function Testimonials() {
   const [current, setCurrent] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const pointerStartTime = useRef(0);
 
   const filtered = googleReviews.filter((r) => {
     if (filter === '5') return r.rating === 5;
@@ -251,6 +252,30 @@ export default function Testimonials() {
 
     return () => clearInterval(timer);
   }, [isHolding, total, goToNext]);
+
+  // Pointer interactions: tap left/right to skip, hold to pause
+  const handlePointerDown = () => {
+    pointerStartTime.current = Date.now();
+    setIsHolding(true);
+  };
+
+  const handlePointerUp = (e) => {
+    setIsHolding(false);
+    const duration = Date.now() - pointerStartTime.current;
+    if (duration < 220 && e.currentTarget) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX < rect.width * 0.35) {
+        goToPrev();
+      } else {
+        goToNext();
+      }
+    }
+  };
+
+  const handlePointerCancel = () => {
+    setIsHolding(false);
+  };
 
   return (
     <section
@@ -363,7 +388,7 @@ export default function Testimonials() {
               Diner Experiences
             </span>
             <span className="text-[11px] text-mehfil-cream/40">
-              · Hold to pause
+              · Tap sides or hold
             </span>
           </div>
 
@@ -402,16 +427,10 @@ export default function Testimonials() {
         >
           <div
             className="rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl relative overflow-hidden bg-[#12100E] touch-none cursor-pointer"
-            onPointerDown={() => setIsHolding(true)}
-            onPointerUp={() => setIsHolding(false)}
-            onPointerLeave={() => setIsHolding(false)}
-            onPointerCancel={() => setIsHolding(false)}
-            onTouchStart={() => setIsHolding(true)}
-            onTouchEnd={() => setIsHolding(false)}
-            onTouchCancel={() => setIsHolding(false)}
-            onMouseDown={() => setIsHolding(true)}
-            onMouseUp={() => setIsHolding(false)}
-            onMouseLeave={() => setIsHolding(false)}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerCancel}
+            onPointerCancel={handlePointerCancel}
           >
             {/* Story-style Progress Indicator at Top */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
@@ -500,51 +519,22 @@ export default function Testimonials() {
               </motion.div>
             </AnimatePresence>
 
-            {/* Navigation & Counter Bar */}
-            <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
-              <div className="text-xs font-mono text-mehfil-cream/50">
+            {/* Clean Footer Bar (No dots, no arrows) */}
+            <div className="flex items-center justify-between mt-5 pt-3.5 border-t border-white/10 text-xs text-mehfil-cream/50">
+              <span className="font-mono text-mehfil-gold">
                 {String((current % total) + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
-              </div>
-
-              {/* Progress Dots */}
-              <div className="flex gap-1.5 flex-wrap justify-center max-w-[200px]">
-                {filtered.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setCurrent(i);
-                      setProgress(0);
-                    }}
-                    aria-label={`Review ${i + 1}`}
-                    className={`h-1.5 transition-all duration-300 rounded-full ${
-                      i === current % total ? 'w-6 bg-mehfil-gold' : 'w-1.5 bg-white/20 hover:bg-white/40'
-                    }`}
-                  />
-                ))}
-              </div>
-
-              {/* Arrow Controls */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={goToPrev}
-                  aria-label="Previous review"
-                  className="w-9 h-9 rounded-full border border-white/15 hover:border-mehfil-gold flex items-center justify-center text-mehfil-cream/80 hover:text-mehfil-gold hover:bg-white/5 active:scale-95 transition-all"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-
-                <button
-                  onClick={goToNext}
-                  aria-label="Next review"
-                  className="w-9 h-9 rounded-full border border-white/15 hover:border-mehfil-gold flex items-center justify-center text-mehfil-cream/80 hover:text-mehfil-gold hover:bg-white/5 active:scale-95 transition-all"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
+              </span>
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-mehfil-gold transition-colors inline-flex items-center gap-1 text-[11px]"
+              >
+                <span>Google Maps Diner Review</span>
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
             </div>
           </div>
         </motion.div>
