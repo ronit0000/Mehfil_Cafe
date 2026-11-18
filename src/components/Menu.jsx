@@ -33,7 +33,8 @@ export default function Menu() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
-  // Generate mobile pages dynamically: exactly 3 items max per page so it never overflows mobile screens
+  // Dynamically generate mobile pages (at most 3 items per page).
+  // Each category starts on a brand-new page; if a category finishes, remaining space is left empty.
   const mobilePages = useMemo(() => {
     const pages = [];
     menuPages.forEach((cat) => {
@@ -55,8 +56,8 @@ export default function Menu() {
   const totalDesktopPages = menuPages.length;
   const totalMobilePages = mobilePages.length;
 
-  const [currentPage, setCurrentPage] = useState(0); // Desktop folios: 0 to 5
-  const [mobilePage, setMobilePage] = useState(0);   // Mobile pages: 0 to 14
+  const [currentPage, setCurrentPage] = useState(0); // Desktop folios: 0 to 14
+  const [mobilePage, setMobilePage] = useState(0);   // Mobile pages: 0 to 25
   const [flipDirection, setFlipDirection] = useState(1);
 
   const touchStartX = useRef(0);
@@ -67,14 +68,12 @@ export default function Menu() {
     // Mobile navigation
     if (mobilePage < totalMobilePages - 1) {
       setFlipDirection(1);
-      const nextM = mobilePage + 1;
-      setMobilePage(nextM);
+      setMobilePage((prev) => prev + 1);
     }
     // Desktop navigation
     if (currentPage < totalDesktopPages - 1) {
       setFlipDirection(1);
-      const nextD = currentPage + 1;
-      setCurrentPage(nextD);
+      setCurrentPage((prev) => prev + 1);
     }
   };
 
@@ -83,14 +82,12 @@ export default function Menu() {
     // Mobile navigation
     if (mobilePage > 0) {
       setFlipDirection(-1);
-      const prevM = mobilePage - 1;
-      setMobilePage(prevM);
+      setMobilePage((prev) => prev - 1);
     }
     // Desktop navigation
     if (currentPage > 0) {
       setFlipDirection(-1);
-      const prevD = currentPage - 1;
-      setCurrentPage(prevD);
+      setCurrentPage((prev) => prev - 1);
     }
   };
 
@@ -104,12 +101,12 @@ export default function Menu() {
     const diffX = touchStartX.current - e.changedTouches[0].clientX;
     const diffY = touchStartY.current - e.changedTouches[0].clientY;
 
-    // Detect horizontal swipe gesture
+    // Detect horizontal swipe
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
       if (diffX > 0) {
-        turnNext(); // Swiped left -> Next
+        turnNext();
       } else {
-        turnPrev(); // Swiped right -> Previous
+        turnPrev();
       }
     }
   };
@@ -138,7 +135,7 @@ export default function Menu() {
   // 3D Realistic Book Curl & Page Turn Animation
   const pageFlipVariants = {
     initial: (dir) => ({
-      rotateY: dir > 0 ? 30 : -30,
+      rotateY: dir > 0 ? 28 : -28,
       opacity: 0,
       scale: 0.98,
       transformOrigin: dir > 0 ? 'right center' : 'left center',
@@ -153,7 +150,7 @@ export default function Menu() {
       },
     },
     exit: (dir) => ({
-      rotateY: dir > 0 ? -30 : 30,
+      rotateY: dir > 0 ? -28 : 28,
       opacity: 0,
       scale: 0.98,
       transformOrigin: dir > 0 ? 'left center' : 'right center',
@@ -168,7 +165,7 @@ export default function Menu() {
     <section
       id="menu"
       ref={sectionRef}
-      className="relative w-full min-h-[100dvh] flex flex-col justify-center items-center py-6 sm:py-12 px-3 sm:px-6 overflow-hidden select-none"
+      className="relative w-full min-h-[100dvh] flex flex-col justify-center items-center py-5 sm:py-10 px-3 sm:px-6 overflow-hidden select-none"
       style={{
         background: 'linear-gradient(180deg, #0A0A0A 0%, #130E09 50%, #0A0A0A 100%)',
       }}
@@ -177,16 +174,16 @@ export default function Menu() {
       {/* Royal Ambient Glow */}
       <div
         aria-hidden="true"
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[800px] h-[400px] sm:h-[600px] bg-[#D4A843]/6 blur-[150px] rounded-full pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] sm:w-[850px] h-[450px] sm:h-[650px] bg-[#D4A843]/6 blur-[160px] rounded-full pointer-events-none"
       />
 
       <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center flex-1 h-full min-h-0">
-        {/* Compact Header to ensure the menu covers viewport cleanly */}
+        {/* Compact Header to ensure menu covers viewport completely */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-3 sm:mb-6 shrink-0"
+          className="text-center mb-3 sm:mb-5 shrink-0"
         >
           <p className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-[#D4A843]">
             Culinary Heritage
@@ -197,14 +194,14 @@ export default function Menu() {
           </h2>
         </motion.div>
 
-        {/* 3D BOOK CASING (Full screen coverage, strictly swipe controlled, no next/prev buttons) */}
+        {/* 3D BOOK CASING (Zero navigation buttons, pure swipe control, perfectly uniform size) */}
         <div
-          className="relative w-full cursor-grab active:cursor-grabbing touch-pan-y flex-1 flex flex-col justify-center max-w-4xl"
+          className="relative w-full cursor-grab active:cursor-grabbing touch-pan-y max-w-4xl"
           style={{ perspective: '2000px' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Leather Book Hardcover Frame */}
+          {/* Leather Book Hardcover Frame - Locked to rigid uniform dimensions */}
           <div
             className="rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.9),0_0_35px_rgba(212,168,67,0.12)] relative border border-[#D4A843]/30 w-full"
             style={{
@@ -220,7 +217,7 @@ export default function Menu() {
             {/* Book Spine Highlight on Desktop */}
             <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-6 bg-gradient-to-r from-black/40 via-[#D4A843]/15 to-black/40 pointer-events-none hidden md:block rounded-full blur-[1px]" />
 
-            {/* Animated Royal Parchment Page */}
+            {/* Animated Royal Parchment Page with FIXED UNIFORM HEIGHT ACROSS ALL PAGES */}
             <AnimatePresence mode="wait" custom={flipDirection}>
               <motion.div
                 key={`page-${currentPage}-${mobilePage}`}
@@ -233,7 +230,8 @@ export default function Menu() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.15}
                 onDragEnd={handleDragEnd}
-                className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between"
+                /* Strict uniform height: exactly 520px on mobile, 570px on desktop */
+                className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between h-[510px] sm:h-[540px] md:h-[570px]"
                 style={{
                   transformStyle: 'preserve-3d',
                 }}
@@ -267,7 +265,7 @@ export default function Menu() {
                 </div>
 
                 {/* Folio Category Header (Mustard / Amber-Yellow Typography from Logo) */}
-                <div className="pt-3 sm:pt-6 pb-1 sm:pb-2 text-center px-4 relative z-10 shrink-0">
+                <div className="pt-3.5 sm:pt-6 pb-1 sm:pb-2 text-center px-4 relative z-10 shrink-0">
                   <h3 className="font-serif text-xl sm:text-3xl font-bold text-[#9E6D18] tracking-tight">
                     <span className="md:hidden">{currentMobilePage.categoryTitle}</span>
                     <span className="hidden md:inline">{activeDesktopCategory.title}</span>
@@ -279,10 +277,10 @@ export default function Menu() {
                   <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#9E6D18]/50 to-transparent mx-auto mt-1.5" />
                 </div>
 
-                {/* DESKTOP VIEW: Two-Page Royal Open Spread */}
-                <div className="hidden md:grid md:grid-cols-2 gap-6 p-6 pt-2 pb-4 relative z-10 flex-1">
+                {/* DESKTOP VIEW: Two-Page Open Spread Layout (Rigid Fixed Size) */}
+                <div className="hidden md:grid md:grid-cols-2 gap-6 p-6 pt-2 pb-3 relative z-10 flex-1 overflow-hidden">
                   {/* Left Page Column */}
-                  <div className="space-y-3.5 pr-3">
+                  <div className="space-y-3 pr-3 flex flex-col justify-start">
                     {leftPageItems.map((item) => (
                       <div
                         key={item.id}
@@ -297,7 +295,7 @@ export default function Menu() {
                           </div>
                           {item.badge && <RoyalBadge text={item.badge} />}
                         </div>
-                        <p className="text-[11px] lg:text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify">
+                        <p className="text-[11px] lg:text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify line-clamp-3">
                           {item.desc}
                         </p>
                       </div>
@@ -305,31 +303,41 @@ export default function Menu() {
                   </div>
 
                   {/* Right Page Column */}
-                  <div className="space-y-3.5 pl-3 border-l border-[#EADECA]/40">
-                    {rightPageItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="group pb-2 border-b border-[#EADECA]/70 last:border-b-0"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-0.5">
-                          <div className="flex items-start gap-1.5">
-                            <VegBadge veg={item.veg} />
-                            <h4 className="font-serif text-sm lg:text-base font-bold text-[#9E6D18] leading-tight">
-                              {item.name}
-                            </h4>
+                  <div className="space-y-3 pl-3 border-l border-[#EADECA]/40 flex flex-col justify-start">
+                    {rightPageItems.length > 0 ? (
+                      rightPageItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="group pb-2 border-b border-[#EADECA]/70 last:border-b-0"
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-0.5">
+                            <div className="flex items-start gap-1.5">
+                              <VegBadge veg={item.veg} />
+                              <h4 className="font-serif text-sm lg:text-base font-bold text-[#9E6D18] leading-tight">
+                                {item.name}
+                              </h4>
+                            </div>
+                            {item.badge && <RoyalBadge text={item.badge} />}
                           </div>
-                          {item.badge && <RoyalBadge text={item.badge} />}
+                          <p className="text-[11px] lg:text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify line-clamp-3">
+                            {item.desc}
+                          </p>
                         </div>
-                        <p className="text-[11px] lg:text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify">
-                          {item.desc}
+                      ))
+                    ) : (
+                      /* Elegant empty space placeholder for sections with fewer items */
+                      <div className="h-full flex flex-col items-center justify-center text-center opacity-40 px-4">
+                        <span className="text-xl text-[#9E6D18]">❖</span>
+                        <p className="font-serif italic text-xs text-[#54483A] mt-2">
+                          Handcrafted with courtly passion in our rooftop kitchen
                         </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
-                {/* MOBILE VIEW: Fits cleanly in screen with max 3 items, zero vertical overflow */}
-                <div className="md:hidden px-3.5 py-1.5 space-y-2.5 relative z-10 flex-1">
+                {/* MOBILE VIEW: Exactly same fixed height, items at top, remaining space left clean */}
+                <div className="md:hidden px-3.5 py-2 space-y-2.5 relative z-10 flex-1 overflow-hidden flex flex-col justify-start">
                   {currentMobilePage.items.map((item) => (
                     <div
                       key={item.id}
@@ -344,15 +352,22 @@ export default function Menu() {
                         </div>
                         {item.badge && <RoyalBadge text={item.badge} />}
                       </div>
-                      <p className="text-[11px] text-[#4A3F31] leading-relaxed font-light pl-4.5 text-justify">
+                      <p className="text-[11px] text-[#4A3F31] leading-relaxed font-light pl-4.5 text-justify line-clamp-3">
                         {item.desc}
                       </p>
                     </div>
                   ))}
+
+                  {/* If section has only 1 or 2 items, graceful royal insignia fills the remaining space */}
+                  {currentMobilePage.items.length < 3 && (
+                    <div className="flex-1 flex items-center justify-center opacity-30 py-4">
+                      <span className="text-sm tracking-widest text-[#9E6D18]">❖ ❖ ❖</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* INSTRUCTION AT THE END OF THE PAGE TO SWIPE (Strictly Zero Next/Prev Buttons) */}
-                <div className="px-4 py-2 sm:py-3 border-t border-[#EADECA]/80 relative z-10 bg-[#F5EFE0]/80 flex items-center justify-between shrink-0">
+                {/* INSTRUCTION AT THE END OF THE PAGE TO SWIPE (Zero Next/Prev Buttons) */}
+                <div className="px-4 py-2.5 sm:py-3 border-t border-[#EADECA]/80 relative z-10 bg-[#F5EFE0]/80 flex items-center justify-between shrink-0">
                   <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-[#735818]">
                     <span className="md:hidden">
                       Page {mobilePage + 1} of {totalMobilePages}
@@ -362,7 +377,7 @@ export default function Menu() {
                     </span>
                   </span>
 
-                  {/* Instruction text with subtle pulsing navigation indicators */}
+                  {/* Clear Swipe Instruction */}
                   <div className="flex items-center gap-1.5 text-xs text-[#9E6D18] font-medium tracking-wide">
                     <span className="animate-pulse">←</span>
                     <span className="font-serif italic text-[11px] sm:text-xs">
