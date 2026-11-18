@@ -3,19 +3,40 @@ import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { menuPages } from '../data/menuData';
 
-function VegBadge({ veg }) {
+function DietaryBadge({ type }) {
+  if (type === 'both') {
+    return (
+      <span
+        className="inline-flex items-center gap-1 shrink-0 mt-0.5"
+        title="Available in Vegetarian & Non-Vegetarian"
+      >
+        <span className="inline-flex items-center justify-center w-3 h-3 rounded-xs border border-emerald-600 bg-emerald-50">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+        </span>
+        <span className="inline-flex items-center justify-center w-3 h-3 rounded-xs border border-rose-600 bg-rose-50">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+        </span>
+      </span>
+    );
+  }
+
+  if (type === 'non-veg') {
+    return (
+      <span
+        className="inline-flex items-center justify-center w-3 h-3 rounded-xs border border-rose-600 bg-rose-50 shrink-0 mt-0.5"
+        title="Non-Vegetarian"
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+      </span>
+    );
+  }
+
   return (
     <span
-      className={`inline-flex items-center justify-center w-3 h-3 rounded-xs border shrink-0 mt-0.5 ${
-        veg ? 'border-emerald-600 bg-emerald-50' : 'border-rose-600 bg-rose-50'
-      }`}
-      title={veg ? 'Vegetarian' : 'Non-Vegetarian'}
+      className="inline-flex items-center justify-center w-3 h-3 rounded-xs border border-emerald-600 bg-emerald-50 shrink-0 mt-0.5"
+      title="Vegetarian"
     >
-      <span
-        className={`w-1 h-1 rounded-full ${
-          veg ? 'bg-emerald-600' : 'bg-rose-600'
-        }`}
-      />
+      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
     </span>
   );
 }
@@ -314,7 +335,7 @@ export default function Menu() {
                           >
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <div className="flex items-start gap-1.5">
-                                <VegBadge veg={item.veg} />
+                                <DietaryBadge type={item.dietaryType} />
                                 <h4 className="font-serif text-[15px] font-bold text-[#8C5E14] leading-snug">
                                   {item.name}
                                 </h4>
@@ -354,7 +375,7 @@ export default function Menu() {
                           >
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <div className="flex items-start gap-1.5">
-                                <VegBadge veg={item.veg} />
+                                <DietaryBadge type={item.dietaryType} />
                                 <h4 className="font-serif text-[15px] font-bold text-[#8C5E14] leading-snug">
                                   {item.name}
                                 </h4>
@@ -395,7 +416,7 @@ export default function Menu() {
                     >
                       <div className="flex items-start justify-between gap-1.5 mb-0.5">
                         <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                          <VegBadge veg={item.veg} />
+                          <DietaryBadge type={item.dietaryType} />
                           <h4 className="font-serif text-[13px] font-bold text-[#8C5E14] leading-tight">
                             {item.name}
                           </h4>
