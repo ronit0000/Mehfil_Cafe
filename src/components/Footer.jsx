@@ -1,10 +1,13 @@
 // src/components/Footer.jsx
 import { motion } from 'framer-motion';
 
+const GOOGLE_MAPS_URL =
+  'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D';
+
 const socialLinks = [
   {
     label: 'Instagram',
-    href: 'https://instagram.com',
+    href: 'https://www.instagram.com/_mehfil_berhampur/',
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
@@ -29,15 +32,6 @@ const socialLinks = [
       </svg>
     ),
   },
-  {
-    label: 'YouTube',
-    href: 'https://youtube.com',
-    icon: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-      </svg>
-    ),
-  },
 ];
 
 const footerLinks = [
@@ -48,7 +42,7 @@ const footerLinks = [
       { label: 'About Us', href: '#about' },
       { label: 'Our Menu', href: '#menu' },
       { label: 'Gallery', href: '#gallery' },
-      { label: 'Testimonials', href: '#testimonials' },
+      { label: 'Google Reviews', href: '#testimonials' },
     ],
   },
   {
@@ -56,27 +50,22 @@ const footerLinks = [
     links: [
       { label: 'Make a Reservation', href: '#reservation' },
       { label: 'Contact Us', href: '#contact' },
-      { label: 'Find Us on Maps', href: 'https://maps.google.com' },
-      { label: 'Private Events', href: '#reservation' },
-      { label: 'Corporate Dining', href: '#reservation' },
+      { label: 'Find Us on Google Maps', href: GOOGLE_MAPS_URL },
+      { label: 'Follow @_mehfil_berhampur', href: 'https://www.instagram.com/_mehfil_berhampur/' },
+      { label: 'Private Gatherings', href: '#reservation' },
     ],
   },
   {
     heading: 'Hours',
     custom: (
-      <ul className="space-y-2 text-sm text-mehfil-cream/50">
-        {[
-          { day: 'Mon – Thu', time: '11 AM – 11 PM' },
-          { day: 'Friday',    time: '11 AM – 12 AM' },
-          { day: 'Saturday',  time: '11 AM – 12 AM' },
-          { day: 'Sunday',    time: '11 AM – 11 PM' },
-        ].map(({ day, time }) => (
-          <li key={day} className="flex justify-between gap-4">
-            <span className="text-mehfil-cream/70 font-medium">{day}</span>
-            <span>{time}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="space-y-2 text-sm text-mehfil-cream/60">
+        <div className="flex justify-between gap-4 font-medium text-mehfil-cream/90">
+          <span>Monday – Sunday</span>
+          <span className="text-mehfil-gold">Open Daily</span>
+        </div>
+        <p className="text-xs text-mehfil-cream/50">11:00 AM – 11:00 PM</p>
+        <p className="text-[11px] text-mehfil-gold/80 pt-1">★ Open till late night rooftop dining</p>
+      </div>
     ),
   },
 ];
@@ -120,7 +109,7 @@ export default function Footer() {
             <a
               href="#home"
               onClick={(e) => { e.preventDefault(); scrollTo('#home'); }}
-              className="flex items-center gap-4 group w-fit"
+              className="flex items-center gap-3 sm:gap-4 group w-fit"
               aria-label="Mehfil Rooftop Cafe & Restro – Go to top"
             >
               {/* Circle icon */}
@@ -129,32 +118,40 @@ export default function Footer() {
                 alt="Mehfil mandala icon"
                 width={72}
                 height={72}
-                className="w-18 h-18 rounded-full object-cover drop-shadow-[0_0_14px_rgba(212,168,67,0.5)] transition-transform duration-500 group-hover:scale-110 flex-shrink-0"
-                style={{ width: '72px', height: '72px' }}
+                className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover drop-shadow-[0_0_14px_rgba(212,168,67,0.5)] transition-transform duration-500 group-hover:scale-110 flex-shrink-0"
               />
               {/* Text logo */}
-              <img
-                src="/images/logo_text.png"
-                alt="Mehfil Rooftop Cafe & Restro"
-                className="h-20 w-auto object-contain object-left drop-shadow-[0_0_6px_rgba(212,168,67,0.3)] transition-opacity duration-300 group-hover:opacity-85"
-                style={{ maxWidth: '280px' }}
-              />
+              <div className="h-12 sm:h-16 w-44 sm:w-60 overflow-visible">
+                <img
+                  src="/images/logo_text.png"
+                  alt="Mehfil Rooftop Cafe & Restro"
+                  className="h-full w-auto object-contain object-left drop-shadow-[0_0_6px_rgba(212,168,67,0.3)] transition-opacity duration-300 group-hover:opacity-85"
+                />
+              </div>
             </a>
 
-            <p className="text-mehfil-cream/50 text-sm leading-relaxed max-w-xs">
+            <p className="text-mehfil-cream/50 text-xs sm:text-sm leading-relaxed max-w-xs">
               A gathering of flavours, ambiance, and memories — crafted for souls who seek more than just a meal. 
               Join us on the rooftop and let the evening unfold.
             </p>
 
             {/* Address */}
-            <address className="not-italic text-sm text-mehfil-cream/50 leading-relaxed">
-              <div className="flex gap-2 items-start">
-                <svg className="w-4 h-4 text-mehfil-gold mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <address className="not-italic text-xs sm:text-sm text-mehfil-cream/60 leading-relaxed">
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex gap-2 items-start hover:text-mehfil-gold transition-colors group/addr"
+              >
+                <svg className="w-4 h-4 text-mehfil-gold mt-0.5 flex-shrink-0 group-hover/addr:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>Near Mission Street,<br />Berhampur, Odisha – 760001</span>
-              </div>
+                <span>
+                  Mehfil Berhampur<br />
+                  Near NH Side, Berhampur, Odisha
+                </span>
+              </a>
             </address>
 
             {/* Social icons */}

@@ -71,7 +71,7 @@ function MenuCard({ item, index }) {
           ₹{item.price}
         </span>
         <button
-          className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs font-medium text-mehfil-gold/70 hover:text-mehfil-gold flex items-center gap-1"
+          className="opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 text-xs font-medium text-mehfil-gold/90 hover:text-mehfil-gold flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 sm:bg-transparent border border-white/10 sm:border-transparent active:scale-95"
           aria-label={`Add ${item.name} to order`}
         >
           + Add
@@ -134,13 +134,13 @@ export default function Menu() {
           </p>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs - horizontal scrolling on mobile with touch physics */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7, delay: 0.2 }}
           ref={tabsRef}
-          className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-10 justify-start lg:justify-center"
+          className="flex gap-2 overflow-x-auto no-scrollbar pb-3 mb-8 sm:mb-10 justify-start lg:justify-center -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth touch-pan-x"
           role="tablist"
           aria-label="Menu categories"
         >

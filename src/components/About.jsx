@@ -6,7 +6,7 @@ const stats = [
   { number: '50+',  label: 'Signature Dishes'  },
   { number: '500+', label: 'Happy Guests / Week' },
   { number: '4.8★', label: 'Average Rating'     },
-  { number: '3 AM', label: 'Open Late'           },
+  { number: '11 PM', label: 'Open Till Late'    },
 ];
 
 const fadeUp = (delay = 0) => ({
@@ -121,7 +121,7 @@ export default function About() {
 
             {/* Floating secondary image */}
             <div
-              className="absolute -bottom-8 -right-6 w-48 sm:w-56 rounded-2xl overflow-hidden shadow-card border-2 border-mehfil-stone"
+              className="absolute -bottom-6 right-2 sm:-bottom-8 sm:-right-6 w-36 sm:w-56 rounded-2xl overflow-hidden shadow-card border-2 border-mehfil-stone"
               style={{ animation: 'float 7s ease-in-out infinite' }}
             >
               <img

@@ -174,23 +174,24 @@ export default function Reservation() {
                   icon: '🕐',
                   title: 'Opening Hours',
                   lines: [
-                    'Mon – Thu: 11 AM – 11 PM',
-                    'Fri – Sat: 11 AM – 12 AM',
-                    'Sunday: 11 AM – 11 PM',
+                    'Monday – Sunday (Open Daily)',
+                    '11:00 AM – 11:00 PM',
+                    'Rooftop open till late evening',
                   ],
                 },
                 {
                   icon: '📍',
                   title: 'Location',
                   lines: [
-                    'Mehfil Rooftop Cafe & Restro',
-                    'Near Mission Street,',
-                    'Berhampur, Odisha – 760001',
+                    'Mehfil Berhampur',
+                    'Near NH Side, Berhampur, Odisha',
                   ],
+                  link: 'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D',
+                  linkText: 'View on Maps →',
                 },
                 {
                   icon: '📞',
-                  title: 'Reservations',
+                  title: 'Reservations & Enquiries',
                   lines: ['+91 98765 43210', 'reservations@mehfil.in'],
                 },
               ].map((item) => (
@@ -201,6 +202,16 @@ export default function Reservation() {
                     {item.lines.map((line) => (
                       <p key={line} className="text-mehfil-cream/55 text-xs leading-relaxed">{line}</p>
                     ))}
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-mehfil-gold hover:underline mt-1 inline-block"
+                      >
+                        {item.linkText}
+                      </a>
+                    )}
                   </div>
                 </div>
               ))}

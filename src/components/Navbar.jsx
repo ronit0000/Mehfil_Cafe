@@ -77,7 +77,7 @@ export default function Navbar() {
             aria-label="Mehfil Rooftop Cafe & Restro – Home"
           >
             {/* Circle icon logo */}
-            <div className="relative w-11 h-11 flex-shrink-0">
+            <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex-shrink-0">
               <img
                 src="/images/logo_circle.jpg"
                 alt="Mehfil mandala icon"
@@ -87,12 +87,11 @@ export default function Navbar() {
               />
             </div>
             {/* Full text logo (Mehfil script + ROOFTOP CAFE & RESTRO) */}
-            <div className="relative h-16 w-64 flex-shrink-0 overflow-visible">
+            <div className="relative h-11 sm:h-14 md:h-16 w-40 sm:w-52 md:w-64 flex-shrink-0 overflow-visible">
               <img
                 src="/images/logo_text.png"
                 alt="Mehfil Rooftop Cafe & Restro"
                 className="h-full w-auto object-contain object-left drop-shadow-[0_0_6px_rgba(212,168,67,0.3)] transition-opacity duration-300 group-hover:opacity-90"
-                style={{ maxWidth: '260px' }}
               />
             </div>
           </a>
@@ -156,23 +155,34 @@ export default function Navbar() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-72 glass-light lg:hidden flex flex-col pt-20 pb-10 px-8"
+              transition={{ type: 'spring', damping: 28, stiffness: 280 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-xs sm:w-80 glass-light lg:hidden flex flex-col pt-16 pb-8 px-6 overflow-y-auto no-scrollbar shadow-2xl"
+              style={{ height: '100dvh' }}
               role="dialog"
               aria-modal="true"
               aria-label="Mobile navigation"
             >
-              <button
-                onClick={() => setOpen(false)}
-                className="absolute top-5 right-5 text-mehfil-cream/60 hover:text-mehfil-gold transition-colors"
-                aria-label="Close menu"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center justify-between pb-4 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src="/images/logo_circle.jpg"
+                    alt="Mehfil"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <span className="font-serif text-base text-mehfil-gold font-semibold tracking-wide">Mehfil</span>
+                </div>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-mehfil-cream/70 hover:text-mehfil-gold hover:bg-white/5 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-1 mt-3">
                 {navLinks.map((link, i) => (
                   <motion.a
                     key={link.href}
@@ -180,10 +190,13 @@ export default function Navbar() {
                     onClick={(e) => { e.preventDefault(); scrollTo(link.href); }}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.07 + 0.1 }}
-                    className="py-4 text-lg font-medium text-mehfil-cream/70 hover:text-mehfil-gold transition-colors duration-300 border-b border-white/5"
+                    transition={{ delay: i * 0.05 + 0.1 }}
+                    className="py-3.5 text-base font-medium text-mehfil-cream/80 hover:text-mehfil-gold active:text-mehfil-gold transition-colors duration-200 border-b border-white/5 flex items-center justify-between group"
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    <svg className="w-4 h-4 text-mehfil-gold/40 group-hover:text-mehfil-gold group-hover:translate-x-1 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </motion.a>
                 ))}
               </div>
@@ -191,25 +204,42 @@ export default function Navbar() {
               <motion.a
                 href="#reservation"
                 onClick={(e) => { e.preventDefault(); scrollTo('#reservation'); }}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="btn-primary text-center mt-10"
+                transition={{ delay: 0.35 }}
+                className="btn-primary text-center mt-6 py-3.5 text-xs font-semibold tracking-wider"
               >
                 Book a Table
               </motion.a>
 
-              <div className="mt-auto text-center flex flex-col items-center gap-2">
-                <img
-                  src="/images/logo_circle.jpg"
-                  alt="Mehfil"
-                  className="w-14 h-14 object-cover rounded-full opacity-30"
-                />
-                <img
-                  src="/images/logo_text.png"
-                  alt="Mehfil Rooftop Cafe & Restro"
-                  className="w-32 object-contain opacity-25"
-                />
+              {/* Mobile quick action buttons */}
+              <div className="grid grid-cols-2 gap-2 mt-4">
+                <a
+                  href="tel:+919876543210"
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-mehfil-cream/80 hover:text-mehfil-gold transition-colors"
+                >
+                  <svg className="w-4 h-4 text-mehfil-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  Call Now
+                </a>
+                <a
+                  href="https://www.instagram.com/_mehfil_berhampur/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-white/5 border border-white/10 text-xs font-medium text-mehfil-cream/80 hover:text-mehfil-gold transition-colors"
+                >
+                  <svg className="w-4 h-4 text-mehfil-gold" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                  </svg>
+                  Instagram
+                </a>
+              </div>
+
+              <div className="mt-auto pt-6 text-center flex flex-col items-center gap-1.5 opacity-60">
+                <p className="text-[10px] uppercase tracking-widest text-mehfil-gold">Open Daily</p>
+                <p className="text-xs text-mehfil-cream/70 font-medium">11:00 AM – 11:00 PM</p>
+                <p className="text-[11px] text-mehfil-cream/40">Near NH Side, Berhampur</p>
               </div>
             </motion.nav>
           </>

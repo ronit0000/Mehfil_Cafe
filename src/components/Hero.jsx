@@ -73,7 +73,7 @@ export default function Hero() {
     <section
       id="home"
       ref={heroRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-[100dvh] pt-28 pb-16 sm:py-0 flex items-center justify-center overflow-hidden"
       style={{
         /* 🔑 Section always dark — overscroll bounce never reveals white */
         backgroundColor: '#0A0A0A',
@@ -161,7 +161,7 @@ export default function Hero() {
           {/* Main headline */}
           <motion.h1
             variants={fadeUp}
-            className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-semibold leading-tight mb-4"
+            className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-semibold leading-snug sm:leading-tight mb-3 sm:mb-4 px-2"
           >
             Rooftop Cafe &{' '}
             <span
@@ -182,35 +182,37 @@ export default function Hero() {
           {/* Sub-tagline */}
           <motion.p
             variants={fadeUp}
-            className="text-mehfil-cream/60 text-base sm:text-lg md:text-xl max-w-2xl leading-relaxed mb-10 font-light tracking-wide"
+            className="text-mehfil-cream/70 text-sm sm:text-lg md:text-xl max-w-2xl leading-relaxed mb-8 sm:mb-10 font-light tracking-wide px-3"
           >
             Where every sunset is a celebration. Dine under the open sky with the finest flavours, 
             crafted with love in the heart of Berhampur.
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-4 items-center">
+          <motion.div variants={fadeIn} className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center w-full sm:w-auto max-w-xs sm:max-w-none">
             <div
+              className="w-full sm:w-auto"
               onMouseMove={ctaMagnetic.handleMouseMove}
               onMouseLeave={ctaMagnetic.handleMouseLeave}
             >
               <button
                 ref={ctaMagnetic.ref}
                 onClick={() => scrollTo('#reservation')}
-                className="btn-primary text-sm"
+                className="btn-primary text-xs sm:text-sm w-full sm:w-auto py-3.5 sm:py-4 justify-center"
                 style={{ animation: 'pulseGlow 2.5s ease-in-out infinite, float 6s ease-in-out infinite' }}
               >
                 Reserve Your Table
               </button>
             </div>
             <div
+              className="w-full sm:w-auto"
               onMouseMove={outlineMagnetic.handleMouseMove}
               onMouseLeave={outlineMagnetic.handleMouseLeave}
             >
               <button
                 ref={outlineMagnetic.ref}
                 onClick={() => scrollTo('#menu')}
-                className="btn-outline text-sm"
+                className="btn-outline text-xs sm:text-sm w-full sm:w-auto py-3.5 sm:py-4 justify-center"
               >
                 Explore Menu
               </button>
@@ -239,8 +241,8 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 text-white/40">
+      {/* Scroll indicator - hide on very short screens to prevent collision */}
+      <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-10 hidden sm:flex flex-col items-center gap-2 text-white/40 pointer-events-none">
         <span className="text-[10px] tracking-[0.25em] uppercase font-medium">Scroll</span>
         <div className="scroll-indicator">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
