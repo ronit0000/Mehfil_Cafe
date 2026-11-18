@@ -1,18 +1,18 @@
 // src/components/Menu.jsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { menuCategories, menuPages } from '../data/menuData';
 
 function VegBadge({ veg }) {
   return (
     <span
-      className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded-sm border shrink-0 mt-1 ${
+      className={`inline-flex items-center justify-center w-3 h-3 rounded-xs border shrink-0 mt-0.5 ${
         veg ? 'border-emerald-600 bg-emerald-50' : 'border-rose-600 bg-rose-50'
       }`}
       title={veg ? 'Vegetarian' : 'Non-Vegetarian'}
     >
       <span
-        className={`w-1.5 h-1.5 rounded-full ${
+        className={`w-1 h-1 rounded-full ${
           veg ? 'bg-emerald-600' : 'bg-rose-600'
         }`}
       />
@@ -23,38 +23,65 @@ function VegBadge({ veg }) {
 function RoyalBadge({ text }) {
   if (!text) return null;
   return (
-    <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-semibold bg-[#D4A843]/15 text-[#9E6D18] border border-[#D4A843]/40 shadow-xs shrink-0">
+    <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded-full font-semibold bg-[#D4A843]/15 text-[#8C5E14] border border-[#D4A843]/35 shrink-0">
       {text}
     </span>
   );
 }
 
 export default function Menu() {
-  const [currentPage, setCurrentPage] = useState(0);
-  const [flipDirection, setFlipDirection] = useState(1); // 1 = forward (left swipe), -1 = backward (right swipe)
-  const totalPages = menuPages.length;
+  const [currentPage, setCurrentPage] = useState(0); // Desktop: 0 to 5 (each is a 2-page spread)
+  const [mobilePage, setMobilePage] = useState(0);   // Mobile: 0 to 11 (each is 3-4 items max)
+  const [flipDirection, setFlipDirection] = useState(1);
+  const totalDesktopPages = menuPages.length;
+  const totalMobilePages = totalDesktopPages * 2;
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
   const touchStartX = useRef(0);
 
-  const turnNext = () => {
-    if (currentPage < totalPages - 1) {
+  // Sync mobile page when desktop category page changes
+  const jumpToCategory = (catIndex) => {
+    setFlipDirection(catIndex >= currentPage ? 1 : -1);
+    setCurrentPage(catIndex);
+    setMobilePage(catIndex * 2);
+  };
+
+  // Mobile navigation
+  const turnMobileNext = () => {
+    if (mobilePage < totalMobilePages - 1) {
       setFlipDirection(1);
-      setCurrentPage((p) => p + 1);
+      const next = mobilePage + 1;
+      setMobilePage(next);
+      setCurrentPage(Math.floor(next / 2));
     }
   };
 
-  const turnPrev = () => {
+  const turnMobilePrev = () => {
+    if (mobilePage > 0) {
+      setFlipDirection(-1);
+      const prev = mobilePage - 1;
+      setMobilePage(prev);
+      setCurrentPage(Math.floor(prev / 2));
+    }
+  };
+
+  // Desktop navigation
+  const turnDesktopNext = () => {
+    if (currentPage < totalDesktopPages - 1) {
+      setFlipDirection(1);
+      const next = currentPage + 1;
+      setCurrentPage(next);
+      setMobilePage(next * 2);
+    }
+  };
+
+  const turnDesktopPrev = () => {
     if (currentPage > 0) {
       setFlipDirection(-1);
-      setCurrentPage((p) => p - 1);
+      const prev = currentPage - 1;
+      setCurrentPage(prev);
+      setMobilePage(prev * 2);
     }
-  };
-
-  const jumpToPage = (index) => {
-    if (index === currentPage) return;
-    setFlipDirection(index > currentPage ? 1 : -1);
-    setCurrentPage(index);
   };
 
   // Touch gesture handlers for mobile swipe
@@ -64,24 +91,28 @@ export default function Menu() {
 
   const handleTouchEnd = (e) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (diff > 45) {
-      turnNext(); // Swiped left -> next page
-    } else if (diff < -45) {
-      turnPrev(); // Swiped right -> prev page
+    if (diff > 40) {
+      turnMobileNext(); // Swipe left -> Next mobile page
+    } else if (diff < -40) {
+      turnMobilePrev(); // Swipe right -> Previous mobile page
     }
   };
 
-  const activePageData = menuPages[currentPage];
+  // Active category data
+  const activeCategoryData = menuPages[currentPage];
+  const items = activeCategoryData.items;
+  const halfLength = Math.ceil(items.length / 2);
+  const leftPageItems = items.slice(0, halfLength);
+  const rightPageItems = items.slice(halfLength);
 
-  // For dual-page desktop spread: left half items, right half items
-  const items = activePageData.items;
-  const leftPageItems = items.slice(0, Math.ceil(items.length / 2));
-  const rightPageItems = items.slice(Math.ceil(items.length / 2));
+  // Mobile page items: exactly 3 or 4 items per mobile page!
+  const isSecondHalfOnMobile = mobilePage % 2 === 1;
+  const currentMobileItems = isSecondHalfOnMobile ? rightPageItems : leftPageItems;
 
-  // 3D Page turn variants simulating natural paper curl & flip
+  // 3D Page turn variants
   const pageFlipVariants = {
     initial: (dir) => ({
-      rotateY: dir > 0 ? 35 : -35,
+      rotateY: dir > 0 ? 30 : -30,
       opacity: 0,
       scale: 0.98,
       transformOrigin: dir > 0 ? 'right center' : 'left center',
@@ -91,17 +122,17 @@ export default function Menu() {
       opacity: 1,
       scale: 1,
       transition: {
-        duration: 0.55,
+        duration: 0.45,
         ease: [0.25, 1, 0.5, 1],
       },
     },
     exit: (dir) => ({
-      rotateY: dir > 0 ? -35 : 35,
+      rotateY: dir > 0 ? -30 : 30,
       opacity: 0,
       scale: 0.98,
       transformOrigin: dir > 0 ? 'left center' : 'right center',
       transition: {
-        duration: 0.45,
+        duration: 0.38,
         ease: [0.25, 1, 0.5, 1],
       },
     }),
@@ -111,7 +142,7 @@ export default function Menu() {
     <section
       id="menu"
       ref={sectionRef}
-      className="relative py-24 sm:py-32 overflow-hidden select-none"
+      className="relative py-20 sm:py-32 overflow-hidden select-none"
       style={{ background: 'linear-gradient(180deg, #0A0A0A 0%, #120E09 50%, #0A0A0A 100%)' }}
       aria-label="Royal Dastarkhwan Menu"
     >
@@ -121,43 +152,40 @@ export default function Menu() {
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-[#D4A843]/5 blur-[160px] rounded-full pointer-events-none"
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 35 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-10 sm:mb-14"
+          className="text-center mb-7 sm:mb-12"
         >
           <p className="section-subheading mb-2">The Royal Dastarkhwan</p>
           <div className="gold-divider" />
           <h2 className="section-heading mt-4">
             An Imperial <span className="font-serif italic text-mehfil-gold">Culinary Anthology</span>
           </h2>
-          <p className="mt-4 text-mehfil-cream/65 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            Turn the gilded parchment pages to discover artisanal slow-cooked recipes, heritage tandoor roasts, and royal elixirs. Swipe or tap page edges to browse.
+          <p className="mt-3 text-mehfil-cream/65 text-xs sm:text-base max-w-xl mx-auto leading-relaxed font-light">
+            Turn the gilded parchment pages to discover artisanal slow-cooked recipes, heritage tandoor roasts, and royal elixirs.
           </p>
         </motion.div>
 
         {/* Category Ribbon Bookmarks (Interactive Royal Tabs) */}
-        <div className="flex items-center justify-center gap-1.5 sm:gap-3 flex-wrap mb-8 sm:mb-10 px-2">
+        <div className="flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar mb-5 sm:mb-8 px-2 pb-2">
           {menuCategories.map((cat, idx) => {
             const isActive = currentPage === idx;
             return (
               <button
                 key={cat.id}
-                onClick={() => jumpToPage(idx)}
-                className={`group relative px-3 sm:px-4 py-2 rounded-t-xl transition-all duration-300 text-xs sm:text-sm font-medium flex items-center gap-1.5 ${
+                onClick={() => jumpToCategory(idx)}
+                className={`group shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full sm:rounded-t-xl transition-all duration-300 text-xs sm:text-sm font-medium flex items-center gap-1.5 ${
                   isActive
-                    ? 'bg-[#FBF7EE] text-[#1F1B16] shadow-md border-t-2 border-[#D4A843] -translate-y-1'
+                    ? 'bg-[#FBF7EE] text-[#1F1B16] shadow-md border border-[#D4A843]/40 sm:border-b-0 -translate-y-0.5'
                     : 'bg-white/5 text-mehfil-cream/60 hover:text-mehfil-gold hover:bg-white/10'
                 }`}
               >
                 <span className="text-sm">{cat.icon}</span>
-                <span>{cat.label}</span>
-                {isActive && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-1 bg-[#FBF7EE]" />
-                )}
+                <span className="whitespace-nowrap">{cat.label}</span>
               </button>
             );
           })}
@@ -166,51 +194,51 @@ export default function Menu() {
         {/* 3D BOOK CASING & PAGES */}
         <div
           className="relative max-w-5xl mx-auto"
-          style={{ perspective: '2000px' }}
+          style={{ perspective: '1800px' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           {/* Outer Royal Hardcover Backplate with Gilded Corners */}
           <div
-            className="rounded-3xl p-3 sm:p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(212,168,67,0.15)] relative border border-[#D4A843]/30"
+            className="rounded-2xl sm:rounded-3xl p-2.5 sm:p-5 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.9),0_0_30px_rgba(212,168,67,0.12)] relative border border-[#D4A843]/30"
             style={{
               background: 'linear-gradient(145deg, #1A1510 0%, #291F14 40%, #15110D 100%)',
             }}
           >
             {/* Gilded Embossed Corner Accents on Book Cover */}
-            <div className="absolute top-3 left-3 w-7 h-7 border-t-2 border-l-2 border-[#D4A843]/60 rounded-tl-lg pointer-events-none" />
-            <div className="absolute top-3 right-3 w-7 h-7 border-t-2 border-r-2 border-[#D4A843]/60 rounded-tr-lg pointer-events-none" />
-            <div className="absolute bottom-3 left-3 w-7 h-7 border-b-2 border-l-2 border-[#D4A843]/60 rounded-bl-lg pointer-events-none" />
-            <div className="absolute bottom-3 right-3 w-7 h-7 border-b-2 border-r-2 border-[#D4A843]/60 rounded-br-lg pointer-events-none" />
+            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 w-5 sm:w-7 h-5 sm:h-7 border-t-2 border-l-2 border-[#D4A843]/60 rounded-tl-lg pointer-events-none" />
+            <div className="absolute top-2 right-2 sm:top-3 sm:right-3 w-5 sm:w-7 h-5 sm:h-7 border-t-2 border-r-2 border-[#D4A843]/60 rounded-tr-lg pointer-events-none" />
+            <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-l-2 border-[#D4A843]/60 rounded-bl-lg pointer-events-none" />
+            <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-r-2 border-[#D4A843]/60 rounded-br-lg pointer-events-none" />
 
-            {/* Book Spine Center Highlight (Visible behind pages) */}
+            {/* Book Spine Center Highlight (Desktop Spread) */}
             <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-8 bg-gradient-to-r from-black/40 via-[#D4A843]/15 to-black/40 pointer-events-none hidden md:block rounded-full blur-[1px]" />
 
             {/* Animated Parchment Folio Spread */}
             <AnimatePresence mode="wait" custom={flipDirection}>
               <motion.div
-                key={currentPage}
+                key={`page-${currentPage}-${mobilePage}`}
                 custom={flipDirection}
                 variants={pageFlipVariants}
                 initial="initial"
                 animate="animate"
                 exit="exit"
-                className="bg-[#FAF6EC] rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3]"
+                className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-xl relative border border-[#E3D9C3] min-h-[420px] sm:min-h-[480px]"
                 style={{
                   transformStyle: 'preserve-3d',
                 }}
               >
-                {/* Vintage Parchment Texture & Center Spine Crease */}
+                {/* Vintage Parchment Texture & Subtle Radial Depth */}
                 <div
                   aria-hidden="true"
-                  className="absolute inset-0 pointer-events-none opacity-40 mix-blend-multiply"
+                  className="absolute inset-0 pointer-events-none opacity-30 mix-blend-multiply"
                   style={{
                     background:
                       'radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.7) 0%, rgba(225,212,185,0.4) 100%)',
                   }}
                 />
 
-                {/* Central Book Spine Shadow on Desktop */}
+                {/* Central Book Spine Shadow on Desktop Spread */}
                 <div
                   aria-hidden="true"
                   className="hidden md:block absolute inset-y-0 left-1/2 -translate-x-1/2 w-12 pointer-events-none z-20"
@@ -221,47 +249,46 @@ export default function Menu() {
                 />
 
                 {/* Inner Gilded Filigree Border Frame */}
-                <div className="absolute inset-2 sm:inset-4 border border-[#D4A843]/40 rounded-xl pointer-events-none z-10">
-                  {/* Filigree Corner Flourishes */}
-                  <span className="absolute top-1 left-1.5 text-[10px] text-[#C8862A]/60">❖</span>
-                  <span className="absolute top-1 right-1.5 text-[10px] text-[#C8862A]/60">❖</span>
-                  <span className="absolute bottom-1 left-1.5 text-[10px] text-[#C8862A]/60">❖</span>
-                  <span className="absolute bottom-1 right-1.5 text-[10px] text-[#C8862A]/60">❖</span>
+                <div className="absolute inset-1.5 sm:inset-3 border border-[#D4A843]/40 rounded-lg sm:rounded-xl pointer-events-none z-10">
+                  <span className="absolute top-1 left-1.5 text-[9px] text-[#C8862A]/60">❖</span>
+                  <span className="absolute top-1 right-1.5 text-[9px] text-[#C8862A]/60">❖</span>
+                  <span className="absolute bottom-1 left-1.5 text-[9px] text-[#C8862A]/60">❖</span>
+                  <span className="absolute bottom-1 right-1.5 text-[9px] text-[#C8862A]/60">❖</span>
                 </div>
 
-                {/* Folio Header (Category & Ornament) */}
-                <div className="pt-6 sm:pt-8 pb-4 text-center px-6 relative z-10">
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-[#9E6D18] font-semibold mb-1">
-                    {activePageData.ornament}
+                {/* Folio Header (Category & Title) */}
+                <div className="pt-4 sm:pt-7 pb-2 text-center px-4 relative z-10">
+                  <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-[#9E6D18] font-semibold mb-0.5">
+                    {activeCategoryData.ornament}
                   </p>
-                  <h3 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#8C5E14] tracking-tight">
-                    {activePageData.title}
+                  <h3 className="font-serif text-xl sm:text-3xl font-bold text-[#8C5E14] tracking-tight">
+                    {activeCategoryData.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-[#54483A] italic font-light mt-1.5 max-w-lg mx-auto">
-                    {activePageData.subtitle}
+                  <p className="text-[11px] sm:text-xs text-[#54483A] italic font-light mt-0.5 max-w-md mx-auto">
+                    {activeCategoryData.subtitle}
                   </p>
-                  <div className="w-24 h-px bg-gradient-to-r from-transparent via-[#C8862A]/60 to-transparent mx-auto mt-3" />
+                  <div className="w-20 h-px bg-gradient-to-r from-transparent via-[#C8862A]/60 to-transparent mx-auto mt-2" />
                 </div>
 
-                {/* DESKTOP: Dual-Page Spread Layout */}
-                <div className="hidden md:grid md:grid-cols-2 gap-10 p-8 pt-4 pb-12 relative z-10">
+                {/* DESKTOP: Dual-Page Spread Layout (Shown on md+ screens) */}
+                <div className="hidden md:grid md:grid-cols-2 gap-8 p-7 pt-2 pb-10 relative z-10">
                   {/* Left Page Column */}
-                  <div className="space-y-6 pr-4">
+                  <div className="space-y-4 pr-3">
                     {leftPageItems.map((item) => (
                       <div
                         key={item.id}
-                        className="group transition-all duration-300 pb-3 border-b border-[#EADECA]/70 last:border-b-0"
+                        className="group transition-all duration-300 pb-2.5 border-b border-[#EADECA]/70 last:border-b-0"
                       >
-                        <div className="flex items-start justify-between gap-3 mb-1.5">
-                          <div className="flex items-start gap-2">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-start gap-1.5">
                             <VegBadge veg={item.veg} />
-                            <h4 className="font-serif text-base lg:text-lg font-bold text-[#9E6D18] group-hover:text-[#6D4708] transition-colors leading-snug">
+                            <h4 className="font-serif text-base font-bold text-[#9E6D18] group-hover:text-[#6D4708] transition-colors leading-snug">
                               {item.name}
                             </h4>
                           </div>
                           {item.badge && <RoyalBadge text={item.badge} />}
                         </div>
-                        <p className="text-xs sm:text-sm text-[#453A2D] leading-relaxed font-light pl-5.5 text-justify">
+                        <p className="text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify">
                           {item.desc}
                         </p>
                       </div>
@@ -269,22 +296,22 @@ export default function Menu() {
                   </div>
 
                   {/* Right Page Column */}
-                  <div className="space-y-6 pl-4 border-l border-[#EADECA]/40">
+                  <div className="space-y-4 pl-3 border-l border-[#EADECA]/40">
                     {rightPageItems.map((item) => (
                       <div
                         key={item.id}
-                        className="group transition-all duration-300 pb-3 border-b border-[#EADECA]/70 last:border-b-0"
+                        className="group transition-all duration-300 pb-2.5 border-b border-[#EADECA]/70 last:border-b-0"
                       >
-                        <div className="flex items-start justify-between gap-3 mb-1.5">
-                          <div className="flex items-start gap-2">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-start gap-1.5">
                             <VegBadge veg={item.veg} />
-                            <h4 className="font-serif text-base lg:text-lg font-bold text-[#9E6D18] group-hover:text-[#6D4708] transition-colors leading-snug">
+                            <h4 className="font-serif text-base font-bold text-[#9E6D18] group-hover:text-[#6D4708] transition-colors leading-snug">
                               {item.name}
                             </h4>
                           </div>
                           {item.badge && <RoyalBadge text={item.badge} />}
                         </div>
-                        <p className="text-xs sm:text-sm text-[#453A2D] leading-relaxed font-light pl-5.5 text-justify">
+                        <p className="text-xs text-[#453A2D] leading-relaxed font-light pl-4.5 text-justify">
                           {item.desc}
                         </p>
                       </div>
@@ -292,52 +319,57 @@ export default function Menu() {
                   </div>
                 </div>
 
-                {/* MOBILE: Single Page Flow */}
-                <div className="md:hidden p-5 sm:p-7 pt-2 pb-10 space-y-5 relative z-10">
-                  {items.map((item) => (
+                {/* MOBILE: Compact Single-Page Folio (Exactly 3 to 4 items max - Fits Phone Screen Perfectly) */}
+                <div className="md:hidden px-4 py-3 space-y-3 relative z-10">
+                  {currentMobileItems.map((item) => (
                     <div
                       key={item.id}
-                      className="group transition-all duration-300 pb-3.5 border-b border-[#EADECA]/80 last:border-b-0"
+                      className="group pb-2.5 border-b border-[#EADECA]/80 last:border-b-0"
                     >
-                      <div className="flex items-start justify-between gap-2.5 mb-1.5">
-                        <div className="flex items-start gap-2 flex-1">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
                           <VegBadge veg={item.veg} />
-                          <h4 className="font-serif text-base font-bold text-[#9E6D18] group-hover:text-[#6D4708] transition-colors leading-snug">
+                          <h4 className="font-serif text-sm font-bold text-[#8C5E14] leading-snug">
                             {item.name}
                           </h4>
                         </div>
                         {item.badge && <RoyalBadge text={item.badge} />}
                       </div>
-                      <p className="text-xs text-[#453A2D] leading-relaxed font-light pl-5 text-justify">
+                      <p className="text-[11px] text-[#4A3F31] leading-relaxed font-light pl-4.5 text-justify">
                         {item.desc}
                       </p>
                     </div>
                   ))}
                 </div>
 
-                {/* Page Footer (Folio Numbers & Navigation Hints) */}
-                <div className="px-8 pb-5 pt-2 flex items-center justify-between text-xs font-mono text-[#8C6D23] border-t border-[#EADECA]/60 relative z-10">
-                  <span className="text-[11px] uppercase tracking-wider text-[#735818]">
-                    Mehfil Royal Archive
+                {/* Page Footer (Folio Numbers) */}
+                <div className="px-5 pb-3 pt-2 flex items-center justify-between text-[11px] font-mono text-[#8C6D23] border-t border-[#EADECA]/60 relative z-10">
+                  <span className="uppercase tracking-wider text-[#735818]">
+                    {isSecondHalfOnMobile ? 'Part II' : 'Part I'}
                   </span>
-                  <span className="font-serif font-bold text-sm tracking-widest text-[#8C5E14]">
-                    Folio {String(currentPage + 1).padStart(2, '0')} of {String(totalPages).padStart(2, '0')}
+                  <span className="font-serif font-bold tracking-widest text-[#8C5E14]">
+                    <span className="md:hidden">
+                      Page {mobilePage + 1} of {totalMobilePages}
+                    </span>
+                    <span className="hidden md:inline">
+                      Folio {currentPage + 1} of {totalDesktopPages}
+                    </span>
                   </span>
-                  <span className="text-[11px] hidden sm:inline-block uppercase tracking-wider text-[#735818]">
-                    Swipe or Tap to Turn
+                  <span className="text-[10px] uppercase tracking-wider text-[#735818]">
+                    Swipe ➔
                   </span>
                 </div>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {/* Realistic Page-Turning Handles (Left & Right Flaps) */}
+          {/* DESKTOP SIDE TURNING HANDLES (Outside the book, never overlaps text) */}
           <button
-            onClick={turnPrev}
+            onClick={turnDesktopPrev}
             disabled={currentPage === 0}
-            aria-label="Previous menu page"
-            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-6 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#D4A843]/40 bg-[#1A1510]/90 backdrop-blur-md flex items-center justify-center text-[#D4A843] hover:bg-[#D4A843] hover:text-black transition-all shadow-xl active:scale-95 ${
-              currentPage === 0 ? 'opacity-25 cursor-not-allowed pointer-events-none' : 'opacity-90 hover:opacity-100'
+            aria-label="Previous menu folio"
+            className={`hidden md:flex absolute top-1/2 -translate-y-1/2 -left-6 z-30 w-12 h-12 rounded-full border border-[#D4A843]/40 bg-[#1A1510]/95 backdrop-blur-md items-center justify-center text-[#D4A843] hover:bg-[#D4A843] hover:text-black transition-all shadow-xl active:scale-95 ${
+              currentPage === 0 ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'opacity-90 hover:opacity-100'
             }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -346,29 +378,58 @@ export default function Menu() {
           </button>
 
           <button
-            onClick={turnNext}
-            disabled={currentPage === totalPages - 1}
-            aria-label="Next menu page"
-            className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-6 z-30 w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-[#D4A843]/40 bg-[#1A1510]/90 backdrop-blur-md flex items-center justify-center text-[#D4A843] hover:bg-[#D4A843] hover:text-black transition-all shadow-xl active:scale-95 ${
-              currentPage === totalPages - 1 ? 'opacity-25 cursor-not-allowed pointer-events-none' : 'opacity-90 hover:opacity-100'
+            onClick={turnDesktopNext}
+            disabled={currentPage === totalDesktopPages - 1}
+            aria-label="Next menu folio"
+            className={`hidden md:flex absolute top-1/2 -translate-y-1/2 -right-6 z-30 w-12 h-12 rounded-full border border-[#D4A843]/40 bg-[#1A1510]/95 backdrop-blur-md items-center justify-center text-[#D4A843] hover:bg-[#D4A843] hover:text-black transition-all shadow-xl active:scale-95 ${
+              currentPage === totalDesktopPages - 1 ? 'opacity-20 cursor-not-allowed pointer-events-none' : 'opacity-90 hover:opacity-100'
             }`}
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
             </svg>
           </button>
+
+          {/* MOBILE NAVIGATION BAR (Cleanly below the book, never covers text) */}
+          <div className="flex md:hidden items-center justify-between gap-3 mt-4 px-2">
+            <button
+              onClick={turnMobilePrev}
+              disabled={mobilePage === 0}
+              className={`px-4 py-2 rounded-full border border-[#D4A843]/40 bg-[#1A1510] text-[#D4A843] text-xs font-semibold flex items-center gap-1.5 shadow-md active:scale-95 ${
+                mobilePage === 0 ? 'opacity-25 pointer-events-none' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
+              <span>←</span>
+              <span>Prev</span>
+            </button>
+
+            <span className="text-[11px] font-mono text-mehfil-cream/60 tracking-wider">
+              {mobilePage + 1} / {totalMobilePages}
+            </span>
+
+            <button
+              onClick={turnMobileNext}
+              disabled={mobilePage === totalMobilePages - 1}
+              className={`px-4 py-2 rounded-full border border-[#D4A843]/40 bg-[#1A1510] text-[#D4A843] text-xs font-semibold flex items-center gap-1.5 shadow-md active:scale-95 ${
+                mobilePage === totalMobilePages - 1 ? 'opacity-25 pointer-events-none' : 'opacity-90 hover:opacity-100'
+              }`}
+            >
+              <span>Next</span>
+              <span>→</span>
+            </button>
+          </div>
         </div>
 
         {/* Bottom Reservation Call to Action */}
-        <div className="mt-12 sm:mt-16 text-center">
-          <p className="text-mehfil-cream/50 text-xs sm:text-sm mb-4">
-            Craving these royal flavors under the open Berhampur sky?
+        <div className="mt-8 sm:mt-14 text-center">
+          <p className="text-mehfil-cream/50 text-xs sm:text-sm mb-3">
+            Ready to experience these royal flavors under the open Berhampur sky?
           </p>
           <a
             href="#reservation"
-            className="btn-primary inline-flex items-center gap-2.5 text-xs sm:text-sm py-3.5 px-8 shadow-glow-sm"
+            className="btn-primary inline-flex items-center gap-2 text-xs sm:text-sm py-3 px-7 shadow-glow-sm"
           >
-            <span>Reserve Your Dastarkhwan Table</span>
+            <span>Reserve a Table</span>
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
