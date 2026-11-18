@@ -1,5 +1,5 @@
 // src/components/Menu.jsx
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { menuPages } from '../data/menuData';
 
@@ -50,9 +50,30 @@ function RoyalBadge({ text }) {
   );
 }
 
+// Curated button labels for the quick-jump ribbon
+const categoryButtons = [
+  { title: 'Soup',                      label: 'Soup' },
+  { title: 'Starters And Appetizers',   label: 'Starters' },
+  { title: 'Salads',                    label: 'Salads' },
+  { title: 'Main Course Indian',        label: 'Main Course' },
+  { title: 'Chinese Rice And Noodles',  label: 'Chinese' },
+  { title: 'Grilled',                   label: 'Grilled' },
+  { title: 'Rice And Biriyani',         label: 'Biryani & Rice' },
+  { title: 'Dal',                       label: 'Dal' },
+  { title: 'Burgers',                   label: 'Burgers' },
+  { title: 'Pizza',                     label: 'Pizza' },
+  { title: 'Sandwich',                  label: 'Sandwich' },
+  { title: 'Pasta',                     label: 'Pasta' },
+  { title: 'Dessert',                   label: 'Dessert' },
+  { title: 'BEVERAGES',                 label: 'Beverages' },
+  { title: 'Indian Breads',             label: 'Breads' },
+  { title: 'Sides',                     label: 'Sides' },
+];
+
 export default function Menu() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
+  const categoryBarRef = useRef(null);
 
   // Chunk items into clean folios of at most 5 items per page.
   // This completely eliminates internal vertical scrolling, ensuring the user is NEVER trapped
@@ -76,12 +97,49 @@ export default function Menu() {
     return list;
   }, []);
 
+  // Precompute the starting folio index for each category
+  const categoryStartIndices = useMemo(() => {
+    const map = {};
+    folios.forEach((folio, idx) => {
+      if (map[folio.categoryTitle] === undefined) {
+        map[folio.categoryTitle] = idx;
+      }
+    });
+    return map;
+  }, [folios]);
+
   const totalPages = folios.length;
   const [currentPage, setCurrentPage] = useState(0);
   const [flipDirection, setFlipDirection] = useState(1);
 
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
+
+  // Active category title for styling the buttons
+  const activeCategoryTitle = folios[currentPage]?.categoryTitle;
+
+  // Jump directly to the first page of any category
+  const jumpToCategory = (catTitle) => {
+    const targetIndex = categoryStartIndices[catTitle];
+    if (targetIndex !== undefined && targetIndex !== currentPage) {
+      setFlipDirection(targetIndex > currentPage ? 1 : -1);
+      setCurrentPage(targetIndex);
+    }
+  };
+
+  // Keep active button scrolled into center of the ribbon
+  useEffect(() => {
+    if (!activeCategoryTitle || !categoryBarRef.current) return;
+    const btnId = `cat-btn-${activeCategoryTitle.replace(/\s+/g, '-')}`;
+    const btnEl = document.getElementById(btnId);
+    if (btnEl) {
+      btnEl.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activeCategoryTitle]);
 
   // Turn forward (swipe left / drag left)
   const turnNext = () => {
@@ -110,8 +168,7 @@ export default function Menu() {
     const diffY = touchStartY.current - e.changedTouches[0].clientY;
 
     // Detect horizontal swipe gesture:
-    // Only turn pages if the swipe is predominantly horizontal (at least 1.5x more horizontal than vertical)
-    // This allows the user to scroll the website vertically without accidentally flipping pages!
+    // Only turn pages if the swipe is predominantly horizontal
     if (Math.abs(diffX) > Math.abs(diffY) * 1.4 && Math.abs(diffX) > 35) {
       if (diffX > 0) {
         turnNext();
@@ -186,7 +243,7 @@ export default function Menu() {
           initial={{ opacity: 0, y: 15 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-3 sm:mb-5 shrink-0"
+          className="text-center mb-2.5 sm:mb-4 shrink-0"
         >
           <p className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-[#D4A843]">
             Culinary Heritage
@@ -196,6 +253,39 @@ export default function Menu() {
             Our <span className="italic text-[#D4A843]">Menu</span>
           </h2>
         </motion.div>
+
+        {/* ATTRACTIVE BLENDED ROYAL CATEGORY QUICK-JUMP RIBBON */}
+        <div className="w-full max-w-2xl lg:max-w-3xl mx-auto mb-3 sm:mb-4.5 px-1 relative shrink-0">
+          {/* Subtle gradient edge fades for smooth horizontal scrolling cue */}
+          <div className="absolute left-0 top-0 bottom-0 w-5 bg-gradient-to-r from-[#0D0B08] to-transparent pointer-events-none z-10 sm:hidden" />
+          <div className="absolute right-0 top-0 bottom-0 w-5 bg-gradient-to-l from-[#0D0B08] to-transparent pointer-events-none z-10 sm:hidden" />
+
+          <div
+            ref={categoryBarRef}
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1 scroll-smooth"
+            style={{ touchAction: 'pan-x' }}
+          >
+            {categoryButtons.map((cat) => {
+              const isActive = activeCategoryTitle === cat.title;
+              return (
+                <button
+                  key={cat.title}
+                  id={`cat-btn-${cat.title.replace(/\s+/g, '-')}`}
+                  type="button"
+                  onClick={() => jumpToCategory(cat.title)}
+                  className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-serif tracking-wide transition-all duration-300 shrink-0 flex items-center gap-1.5 cursor-pointer backdrop-blur-md ${
+                    isActive
+                      ? 'bg-[#D4A843]/20 text-[#FAF6EC] border border-[#D4A843] shadow-[0_0_15px_rgba(212,168,67,0.35)] font-semibold scale-[1.03]'
+                      : 'bg-[#18130E]/70 text-[#D4C4A8]/70 border border-[#D4A843]/20 hover:border-[#D4A843]/50 hover:text-[#FAF6EC] hover:bg-[#221A12]'
+                  }`}
+                >
+                  {isActive && <span className="text-[9px] text-[#D4A843] animate-pulse">❖</span>}
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {/* 3D ROYAL FOLIO CASING
             touch-action: pan-y enables smooth native browser window scrolling on mobile vertical drag! */}
@@ -218,7 +308,7 @@ export default function Menu() {
             <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-l-2 border-[#D4A843]/60 rounded-bl-lg pointer-events-none" />
             <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-r-2 border-[#D4A843]/60 rounded-br-lg pointer-events-none" />
 
-            {/* Animated Royal Folio Page (Single page on PC & mobile, strictly zero internal scroll trap) */}
+            {/* Animated Royal Folio Page */}
             <AnimatePresence mode="wait" custom={flipDirection}>
               <motion.div
                 key={`page-${currentPage}`}
@@ -231,7 +321,6 @@ export default function Menu() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.15}
                 onDragEnd={handleDragEnd}
-                /* Fits 5 items perfectly without any vertical overflow or inner scrollbar */
                 className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between h-[510px] sm:h-[570px] md:h-[620px]"
                 style={{
                   transformStyle: 'preserve-3d',
