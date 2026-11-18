@@ -1,0 +1,66 @@
+// src/data/menuData.js
+export const menuCategories = [
+  { id: 'soups',       label: 'Soups',       icon: '🍲' },
+  { id: 'starters',    label: 'Starters',    icon: '🥗' },
+  { id: 'mains',       label: 'Main Course', icon: '🍛' },
+  { id: 'breads',      label: 'Breads',      icon: '🫓' },
+  { id: 'beverages',   label: 'Beverages',   icon: '☕' },
+  { id: 'desserts',    label: 'Desserts',    icon: '🍮' },
+];
+
+export const menuItems = {
+  soups: [
+    { id: 's1', name: 'Tomato Basil Soup',      desc: 'Velvety roasted tomatoes, fresh basil, drizzled with extra virgin olive oil',  price: 149, veg: true,  badge: 'Chef\'s Pick' },
+    { id: 's2', name: 'Sweet Corn Soup',         desc: 'Classic creamy sweet corn with vegetable broth and spring onion garnish',       price: 139, veg: true  },
+    { id: 's3', name: 'Manchow Soup',            desc: 'Indo-Chinese classic loaded with vegetables, noodles and tangy broth',          price: 159, veg: true  },
+    { id: 's4', name: 'Chicken Hot & Sour',      desc: 'Slow-simmered chicken with black pepper, vinegar and chilli paste',             price: 179, veg: false },
+    { id: 's5', name: 'Lemon Coriander Soup',    desc: 'Light and refreshing broth with lemon zest and fresh coriander leaves',        price: 129, veg: true  },
+    { id: 's6', name: 'Mutton Paya Soup',        desc: 'Traditional slow-cooked mutton trotters broth with aromatic spices',           price: 229, veg: false, badge: 'Signature' },
+  ],
+  starters: [
+    { id: 'st1', name: 'Paneer Tikka',           desc: 'Marinated cottage cheese in smoky tandoor, served with mint chutney',          price: 299, veg: true,  badge: 'Bestseller' },
+    { id: 'st2', name: 'Chicken Seekh Kebab',    desc: 'Spiced minced chicken on skewers, finished in live charcoal grill',           price: 349, veg: false, badge: 'Bestseller' },
+    { id: 'st3', name: 'Crispy Corn',            desc: 'Stir-fried sweet corn in Indo-Chinese style with bell peppers',                price: 199, veg: true  },
+    { id: 'st4', name: 'Veg Spring Roll',        desc: 'Crispy golden rolls stuffed with sautéed veggies and noodles',                price: 219, veg: true  },
+    { id: 'st5', name: 'Fish Amritsari',         desc: 'Batter-fried fish with carom seeds and chaat masala, served with chutney',    price: 399, veg: false },
+    { id: 'st6', name: 'Hara Bhara Kebab',       desc: 'Spinach and paneer patties with green peas, shallow fried to perfection',     price: 249, veg: true  },
+    { id: 'st7', name: 'Chicken Lollipop',       desc: 'Flavourful chicken drums tossed in fiery Indo-Chinese sauce',                 price: 329, veg: false },
+    { id: 'st8', name: 'Prawn Koliwada',         desc: 'Coastal-style crispy prawns with Konkan spices and lemon wedge',              price: 449, veg: false, badge: 'Chef\'s Pick' },
+  ],
+  mains: [
+    { id: 'm1',  name: 'Dal Makhani',            desc: 'Black lentils slow-cooked overnight in butter and cream – our pride',         price: 279, veg: true,  badge: 'Must Try' },
+    { id: 'm2',  name: 'Butter Chicken',         desc: 'Tender chicken in a rich, velvety tomato butter gravy',                       price: 379, veg: false, badge: 'Bestseller' },
+    { id: 'm3',  name: 'Paneer Makhani',         desc: 'Silky cottage cheese swimming in buttery tomato-cream gravy',                 price: 319, veg: true  },
+    { id: 'm4',  name: 'Mutton Rogan Josh',      desc: 'Kashmiri classic – slow braised mutton in bold whole-spice gravy',            price: 479, veg: false },
+    { id: 'm5',  name: 'Veg Dum Biryani',        desc: 'Aromatic saffron rice layered with seasonal vegetables and fried onion',      price: 299, veg: true  },
+    { id: 'm6',  name: 'Chicken Dum Biryani',    desc: 'Marinated chicken sealed under sealed pot with aged basmati and spices',      price: 399, veg: false, badge: 'Signature' },
+    { id: 'm7',  name: 'Prawn Masala',           desc: 'Juicy prawns in a fiery onion-tomato masala with coastal spices',             price: 549, veg: false },
+    { id: 'm8',  name: 'Kadhai Paneer',          desc: 'Cottage cheese and peppers stir-fried in a wok with fresh-ground spices',     price: 299, veg: true  },
+  ],
+  breads: [
+    { id: 'b1',  name: 'Butter Naan',            desc: 'Soft leavened bread brushed generously with home-churned butter',             price:  59, veg: true  },
+    { id: 'b2',  name: 'Garlic Naan',            desc: 'Naan topped with roasted garlic, coriander and a drizzle of butter',         price:  79, veg: true  },
+    { id: 'b3',  name: 'Tawa Paratha',           desc: 'Flaky whole-wheat layered flatbread cooked on iron griddle',                  price:  49, veg: true  },
+    { id: 'b4',  name: 'Laccha Paratha',         desc: 'Crispy layered paratha with a golden exterior and soft inside',              price:  79, veg: true  },
+    { id: 'b5',  name: 'Peshwari Naan',          desc: 'Stuffed naan with almonds, coconut and raisins, lightly sweetened',          price:  99, veg: true,  badge: 'Chef\'s Pick' },
+    { id: 'b6',  name: 'Cheese Kulcha',          desc: 'Leavened bread stuffed with melted cheese and herbs',                        price: 129, veg: true  },
+  ],
+  beverages: [
+    { id: 'bv1', name: 'Cold Coffee',            desc: 'Chilled espresso shaken with milk, sugar and a scoop of vanilla ice cream',  price: 149, veg: true,  badge: 'Favourite' },
+    { id: 'bv2', name: 'Mango Lassi',            desc: 'Fresh Alphonso mango blended with thick yogurt and a pinch of cardamom',    price: 139, veg: true  },
+    { id: 'bv3', name: 'Virgin Mojito',          desc: 'Mint, lime and soda over crushed ice with a sugar-salted rim',               price: 129, veg: true  },
+    { id: 'bv4', name: 'Masala Chai',            desc: 'Traditional spiced tea brewed with ginger, cardamom and tulsi',              price:  69, veg: true  },
+    { id: 'bv5', name: 'Rooftop Cooler',         desc: 'Signature house blend – watermelon, mint, basil and lemonade',               price: 169, veg: true,  badge: 'Signature' },
+    { id: 'bv6', name: 'Filter Coffee',          desc: 'South Indian-style decoction served in a traditional brass tumbler',         price:  89, veg: true  },
+    { id: 'bv7', name: 'Strawberry Shake',       desc: 'Fresh strawberries blended with chilled milk and vanilla cream',             price: 159, veg: true  },
+    { id: 'bv8', name: 'Blue Lagoon',            desc: 'Blue curacao syrup, lemon and fizz – a mesmerising visual delight',          price: 179, veg: true  },
+  ],
+  desserts: [
+    { id: 'd1',  name: 'Gulab Jamun',            desc: 'Warm melt-in-mouth milk dumplings soaked in rose-saffron syrup',             price:  99, veg: true  },
+    { id: 'd2',  name: 'Chocolate Lava Cake',    desc: 'Warm chocolate fondant with a molten centre, served with vanilla gelato',    price: 199, veg: true,  badge: 'Must Try' },
+    { id: 'd3',  name: 'Phirni',                 desc: 'Set rice pudding with saffron and pistachios served in clay earthenware',    price: 129, veg: true  },
+    { id: 'd4',  name: 'Kulfi Falooda',          desc: 'Rose falooda with creamy malai kulfi, basil seeds and thandai syrup',       price: 169, veg: true,  badge: 'Favourite' },
+    { id: 'd5',  name: 'Rasgulla',               desc: 'Odisha\'s pride – soft spongy chenna balls in light sugar syrup',           price:  89, veg: true  },
+    { id: 'd6',  name: 'Tiramisu',               desc: 'Italian classic – espresso-soaked ladyfingers with mascarpone cloud',       price: 229, veg: true,  badge: 'Chef\'s Pick' },
+  ],
+};

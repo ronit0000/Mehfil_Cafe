@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    /* 🔑 Kill overscroll white bounce on all browsers */
+    background-color: #0A0A0A;
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-mehfil-dark text-mehfil-cream;
+    font-family: 'Inter', system-ui, sans-serif;
+    /* 🔑 Prevent elastic scroll from revealing white behind body */
+    background-color: #0A0A0A;
+    overscroll-behavior: none;
+    /* Force GPU compositing layer on the whole document */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+}
+
+@layer components {
+  /* ── Glassmorphism ── */
+  .glass {
+    background: rgba(10, 10, 10, 0.55);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(212, 168, 67, 0.12);
+    /* 🔑 Force own GPU compositing layer — prevents blur lag */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    isolation: isolate;
+  }
+
+  .glass-light {
+    background: rgba(26, 26, 26, 0.70);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(212, 168, 67, 0.15);
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    isolation: isolate;
+  }
+
+  /* ── Gold divider ── */
+  .gold-divider {
+    @apply w-24 h-px bg-gradient-to-r from-transparent via-mehfil-gold to-transparent mx-auto my-6;
+  }
+
+  /* ── Section heading ── */
+  .section-heading {
+    font-family: 'Playfair Display', serif;
+    @apply text-4xl md:text-5xl lg:text-6xl font-semibold text-mehfil-cream leading-tight;
+  }
+
+  .section-subheading {
+    font-family: 'Great Vibes', cursive;
+    @apply text-2xl md:text-3xl text-mehfil-gold;
+  }
+
+  /* ── Gradient text ── */
+  .gradient-text {
+    background: linear-gradient(135deg, #D4A843 0%, #E8782A 50%, #D4A843 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    @apply relative overflow-hidden px-8 py-4 rounded-full font-semibold tracking-wider uppercase text-sm;
+    background: linear-gradient(135deg, #D4A843, #E8782A);
+    color: #0A0A0A;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    will-change: transform;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(212, 168, 67, 0.5), 0 0 60px rgba(232, 120, 42, 0.2);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .btn-outline {
+    @apply relative overflow-hidden px-8 py-4 rounded-full font-semibold tracking-wider uppercase text-sm;
+    border: 1.5px solid rgba(212, 168, 67, 0.7);
+    color: #D4A843;
+    background: transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease, color 0.3s ease;
+  }
+  .btn-outline:hover {
+    background: rgba(212, 168, 67, 0.1);
+    box-shadow: 0 0 20px rgba(212, 168, 67, 0.3);
+    transform: translateY(-2px);
+  }
+  .btn-outline:active { transform: translateY(0); }
+
+  /* ── Menu tab ── */
+  .menu-tab {
+    @apply px-5 py-2.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 cursor-pointer;
+    color: rgba(245, 237, 214, 0.55);
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .menu-tab:hover {
+    color: #D4A843;
+    border-color: rgba(212, 168, 67, 0.3);
+  }
+  .menu-tab.active {
+    background: linear-gradient(135deg, #D4A843, #E8782A);
+    color: #0A0A0A;
+    border-color: transparent;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(212, 168, 67, 0.4);
+  }
+
+  /* ── Form input – floating label ── */
+  .form-group {
+    @apply relative;
+  }
+  .form-input {
+    @apply w-full bg-transparent border border-white/10 rounded-xl px-5 pt-6 pb-3 text-mehfil-cream text-sm outline-none transition-all duration-300;
+    font-family: 'Inter', sans-serif;
+  }
+  .form-input:focus {
+    border-color: rgba(212, 168, 67, 0.6);
+    box-shadow: 0 0 0 3px rgba(212, 168, 67, 0.08), 0 0 20px rgba(212, 168, 67, 0.1);
+  }
+  .form-input.error {
+    border-color: rgba(239, 68, 68, 0.6);
+  }
+  .form-input:focus ~ .form-label,
+  .form-input:not(:placeholder-shown) ~ .form-label {
+    transform: translateY(-10px) scale(0.78);
+    color: #D4A843;
+    transform-origin: left;
+  }
+  .form-label {
+    @apply absolute left-5 top-4 text-sm pointer-events-none transition-all duration-300;
+    color: rgba(245, 237, 214, 0.45);
+    transform-origin: left;
+  }
+
+  /* ── Menu card hover ── */
+  .menu-card {
+    @apply relative rounded-2xl p-5 transition-all duration-300 cursor-default;
+    background: rgba(26, 26, 26, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    will-change: transform;
+  }
+  .menu-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(212, 168, 67, 0.2);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 168, 67, 0.08);
+  }
+
+  /* ── Neon glow text (for logo replica) ── */
+  .neon-glow {
+    text-shadow:
+      0 0 7px #fff,
+      0 0 10px #fff,
+      0 0 21px #fff,
+      0 0 42px #D4A843,
+      0 0 82px #D4A843,
+      0 0 92px #D4A843;
+  }
+
+  /* ── Image reveal mask ── */
+  .image-reveal {
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.9s cubic-bezier(0.77, 0, 0.18, 1);
+  }
+  .image-reveal.revealed {
+    clip-path: inset(0 0% 0 0);
+  }
+
+  /* ── Scroll indicator ── */
+  .scroll-indicator {
+    animation: bounce 2s infinite;
+  }
+
+  /* ── Custom focus ring ── */
+  *:focus-visible {
+    outline: 2px solid rgba(212, 168, 67, 0.6);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  .will-change-transform { will-change: transform; }
+
+  /* Particle canvas overlay */
+  .hero-overlay {
+    background: linear-gradient(
+      to bottom,
+      rgba(10,10,10,0.3) 0%,
+      rgba(10,10,10,0.5) 50%,
+      rgba(10,10,10,0.9) 100%
+    );
+  }
+
+  .section-bg {
+    background: linear-gradient(180deg, #0A0A0A 0%, #111111 50%, #0A0A0A 100%);
+  }
+
+  /* Shimmer on price badges */
+  .shimmer-gold {
+    background: linear-gradient(90deg, #D4A843 0%, #F5EDD6 50%, #D4A843 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ── Keyframes (non-Tailwind) ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+  40%, 43%  { transform: translateY(-15px); }
+  70%        { transform: translateY(-7px); }
+  90%        { transform: translateY(-3px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-12px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212,168,67,0.3), 0 0 40px rgba(212,168,67,0.1); }
+  50%       { box-shadow: 0 0 40px rgba(212,168,67,0.6), 0 0 80px rgba(212,168,67,0.3); }
+}
+
+@keyframes rotateSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Parallax helper */
+.parallax-container {
+  position: relative;
+  overflow: hidden;
+}
+.parallax-bg {
+  position: absolute;
+  inset: -20%;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+  transform-origin: center;
+  will-change: transform;
+}
