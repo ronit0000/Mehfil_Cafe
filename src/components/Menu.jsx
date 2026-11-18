@@ -33,21 +33,34 @@ export default function Menu() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
-  // Dynamically generate mobile pages (at most 3 items per page).
+  // Dynamically generate mobile pages (up to 4-5 items per page to maximize space without overflowing).
   // Each category starts on a brand-new page; if a category finishes, remaining space is left empty.
   const mobilePages = useMemo(() => {
     const pages = [];
     menuPages.forEach((cat) => {
-      const chunkSize = 3;
-      const totalParts = Math.ceil(cat.items.length / chunkSize);
-      for (let i = 0; i < cat.items.length; i += chunkSize) {
+      const totalItems = cat.items.length;
+      // If category has 5 or fewer items, it fits gracefully on 1 single folio.
+      // If it has more (e.g. 6 or 8 items), split into pages of at most 4 items.
+      if (totalItems <= 5) {
         pages.push({
           categoryTitle: cat.title,
           categorySubtitle: cat.subtitle,
-          items: cat.items.slice(i, i + chunkSize),
-          part: Math.floor(i / chunkSize) + 1,
-          totalParts,
+          items: cat.items,
+          part: 1,
+          totalParts: 1,
         });
+      } else {
+        const chunkSize = 4;
+        const totalParts = Math.ceil(totalItems / chunkSize);
+        for (let i = 0; i < totalItems; i += chunkSize) {
+          pages.push({
+            categoryTitle: cat.title,
+            categorySubtitle: cat.subtitle,
+            items: cat.items.slice(i, i + chunkSize),
+            part: Math.floor(i / chunkSize) + 1,
+            totalParts,
+          });
+        }
       }
     });
     return pages;
@@ -337,31 +350,31 @@ export default function Menu() {
                 </div>
 
                 {/* MOBILE VIEW: Exactly same fixed height, items at top, remaining space left clean */}
-                <div className="md:hidden px-3.5 py-2 space-y-2.5 relative z-10 flex-1 overflow-hidden flex flex-col justify-start">
+                <div className="md:hidden px-3.5 py-1.5 space-y-2 relative z-10 flex-1 overflow-hidden flex flex-col justify-start">
                   {currentMobilePage.items.map((item) => (
                     <div
                       key={item.id}
-                      className="group pb-2 border-b border-[#EADECA]/70 last:border-b-0"
+                      className="group pb-1.5 border-b border-[#EADECA]/70 last:border-b-0"
                     >
                       <div className="flex items-start justify-between gap-2 mb-0.5">
                         <div className="flex items-start gap-1.5 flex-1 min-w-0">
                           <VegBadge veg={item.veg} />
-                          <h4 className="font-serif text-sm font-bold text-[#9E6D18] leading-tight">
+                          <h4 className="font-serif text-[13px] font-bold text-[#9E6D18] leading-tight">
                             {item.name}
                           </h4>
                         </div>
                         {item.badge && <RoyalBadge text={item.badge} />}
                       </div>
-                      <p className="text-[11px] text-[#4A3F31] leading-relaxed font-light pl-4.5 text-justify line-clamp-3">
+                      <p className="text-[10.5px] text-[#4A3F31] leading-relaxed font-light pl-4.5 text-justify line-clamp-2">
                         {item.desc}
                       </p>
                     </div>
                   ))}
 
-                  {/* If section has only 1 or 2 items, graceful royal insignia fills the remaining space */}
-                  {currentMobilePage.items.length < 3 && (
-                    <div className="flex-1 flex items-center justify-center opacity-30 py-4">
-                      <span className="text-sm tracking-widest text-[#9E6D18]">❖ ❖ ❖</span>
+                  {/* If section has fewer items, graceful royal insignia fills the remaining space */}
+                  {currentMobilePage.items.length < 4 && (
+                    <div className="flex-1 flex items-center justify-center opacity-30 py-2">
+                      <span className="text-xs tracking-widest text-[#9E6D18]">❖ ❖ ❖</span>
                     </div>
                   )}
                 </div>
