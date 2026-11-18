@@ -107,7 +107,7 @@ export default function About() {
             <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-card">
               <img
                 src="/images/hero2.jpg"
-                alt="Mehfil rooftop dining area at night"
+                alt="Mehfil Rooftop Cafe night seating and open air dining in Berhampur"
                 className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                 loading="lazy"
               />
@@ -126,7 +126,7 @@ export default function About() {
             >
               <img
                 src="/images/hero3.jpg"
-                alt="Mehfil neon signage"
+                alt="Mehfil Rooftop Cafe & Restro warm neon ambiance in Brahmapur Odisha"
                 className="w-full h-full object-cover"
                 loading="lazy"
               />

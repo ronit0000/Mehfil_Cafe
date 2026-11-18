@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { useMagneticEffect } from '../hooks/useMagneticEffect';
 
 const slides = [
-  { src: '/images/hero1.jpg', alt: 'Mehfil neon sign on green wall at night' },
-  { src: '/images/hero2.jpg', alt: 'Rooftop dining area with umbrellas at night' },
-  { src: '/images/hero3.jpg', alt: 'Ambiance view of Mehfil rooftop' },
+  { src: '/images/hero1.jpg', alt: 'Mehfil Rooftop Cafe & Restro glowing neon ambiance in Berhampur (Brahmapur)' },
+  { src: '/images/hero2.jpg', alt: 'Open air rooftop dining and terrace seating at Mehfil Cafe Berhampur' },
+  { src: '/images/hero3.jpg', alt: 'Mehfil Rooftop Cafe night ambiance and romantic dining in Berhampur Odisha' },
 ];
 
 // Stagger variants
@@ -149,21 +149,18 @@ export default function Hero() {
             </span>
           </motion.div>
 
-          {/* Script headline */}
-          <motion.p
-            variants={fadeUp}
-            className="font-script text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-mehfil-gold mb-2 leading-none"
-            style={{ textShadow: '0 0 40px rgba(212,168,67,0.4)' }}
-          >
-            Mehfil
-          </motion.p>
-
-          {/* Main headline */}
+          {/* Main SEO <h1> Heading containing full brand and primary keywords */}
           <motion.h1
             variants={fadeUp}
             className="font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white font-semibold leading-snug sm:leading-tight mb-3 sm:mb-4 px-2"
           >
-            Rooftop Cafe &{' '}
+            <span
+              className="font-script block text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-mehfil-gold mb-2 leading-none font-normal"
+              style={{ textShadow: '0 0 40px rgba(212,168,67,0.4)' }}
+            >
+              Mehfil
+            </span>
+            <span>Rooftop Cafe &{' '}</span>
             <span
               className="gradient-text"
               style={{
@@ -179,13 +176,12 @@ export default function Hero() {
             </span>
           </motion.h1>
 
-          {/* Sub-tagline */}
+          {/* Sub-tagline targeting high-intent local search queries */}
           <motion.p
             variants={fadeUp}
             className="text-mehfil-cream/70 text-sm sm:text-lg md:text-xl max-w-2xl leading-relaxed mb-8 sm:mb-10 font-light tracking-wide px-3"
           >
-            Where every sunset is a celebration. Dine under the open sky with the finest flavours, 
-            crafted with love in the heart of Berhampur.
+            Where every sunset is a celebration. Best open-air rooftop dining, authentic multi-cuisine delicacies, and courtly hospitality in the heart of Berhampur (Brahmapur), Odisha.
           </motion.p>
 
           {/* CTA Buttons */}
