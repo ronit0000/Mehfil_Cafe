@@ -38,37 +38,46 @@ function getLocalDateString(d = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+// FloatingInput with reserved message slot for Zero Cumulative Layout Shift (Zero CLS)
 function FloatingInput({
   id, label, type = 'text', value, onChange, onBlur,
-  error, children, as: Tag = 'input', ...rest
+  error, helperText, children, as: Tag = 'input', ...rest
 }) {
   const isTextarea = Tag === 'textarea';
   return (
-    <div className="form-group">
-      {children ? (
-        children
-      ) : (
-        <Tag
-          id={id}
-          type={type}
-          value={value}
-          onChange={onChange}
-          onBlur={onBlur}
-          placeholder=" "
-          className={`form-input${error ? ' error' : ''} ${isTextarea ? 'resize-none h-28' : ''}`}
-          {...rest}
-          aria-describedby={error ? `${id}-error` : undefined}
-          aria-invalid={!!error}
-        />
-      )}
-      <label htmlFor={id} className="form-label">
-        {label}
-      </label>
-      {error && (
-        <p id={`${id}-error`} className="mt-1 text-xs text-red-400 pl-1" role="alert">
-          {error}
-        </p>
-      )}
+    <div className="form-group flex flex-col">
+      <div className="relative">
+        {children ? (
+          children
+        ) : (
+          <Tag
+            id={id}
+            type={type}
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder=" "
+            className={`form-input${error ? ' error' : ''} ${isTextarea ? 'resize-none h-28' : ''}`}
+            {...rest}
+            aria-describedby={error ? `${id}-error` : undefined}
+            aria-invalid={!!error}
+          />
+        )}
+        <label htmlFor={id} className="form-label">
+          {label}
+        </label>
+      </div>
+
+      {/* Reserved message height slot prevents screen jumps / layout shift */}
+      <div className="min-h-[1.25rem] mt-1 pl-1 text-xs flex items-center">
+        {error ? (
+          <p id={`${id}-error`} className="text-red-400" role="alert">
+            {error}
+          </p>
+        ) : helperText ? (
+          <p className="text-mehfil-cream/40 text-[11px]">{helperText}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -127,9 +136,13 @@ export default function Reservation() {
     const val = e.target.value;
     if (field === 'date') {
       const isSelectedToday = val === today;
+      const nextAvailable = isSelectedToday
+        ? timeSlots.filter((slot) => parseTimeToMinutes(slot) > currentMinutes)
+        : timeSlots;
+
       let newTime = form.time;
-      // If switching to today and currently chosen time has already passed, clear it
-      if (isSelectedToday && form.time && parseTimeToMinutes(form.time) <= currentMinutes) {
+      // If switching to today and current chosen time has passed, clear it smoothly
+      if (isSelectedToday && (!newTime || !nextAvailable.includes(newTime))) {
         newTime = '';
       }
       setForm((prev) => ({ ...prev, date: val, time: newTime }));
@@ -156,7 +169,7 @@ export default function Reservation() {
     if (field === 'time') {
       if (!form.time) e.time = 'Please select a time slot.';
       else if (isToday && parseTimeToMinutes(form.time) <= currentMinutes) {
-        e.time = 'This time has already passed. Please select an upcoming slot.';
+        e.time = 'This time has passed. Please select an upcoming slot.';
       }
     }
     setErrors(e);
@@ -188,7 +201,7 @@ export default function Reservation() {
       formattedDate = form.date;
     }
 
-    // Build clean WhatsApp message (no asterisks / stars at the start of lines)
+    // Build clean WhatsApp message (no asterisks at line beginnings)
     const lines = [
       'MEHFIL ROOFTOP CAFE & RESTRO',
       'Table Reservation Request',
@@ -351,11 +364,11 @@ export default function Reservation() {
             <form
               onSubmit={handleSubmit}
               noValidate
-              className="glass-light rounded-3xl p-6 sm:p-8 flex flex-col gap-5"
+              className="glass-light rounded-3xl p-6 sm:p-8 flex flex-col gap-2"
               aria-label="Table reservation form"
             >
               {/* Row 1: Name + Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                 <FloatingInput
                   id="name"
                   label="Full Name *"
@@ -378,7 +391,7 @@ export default function Reservation() {
               </div>
 
               {/* Row 2: Phone + Guests (Number input supports any count like 2, 8, 25, 100) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                 <FloatingInput
                   id="phone"
                   label="Phone Number"
@@ -402,8 +415,8 @@ export default function Reservation() {
                 />
               </div>
 
-              {/* Row 3: Date + Time */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Row 3: Date + Time (Zero CLS & completely smooth date switching) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
                 <FloatingInput
                   id="date"
                   label="Date *"
@@ -414,82 +427,102 @@ export default function Reservation() {
                   error={errors.date}
                   min={today}
                 />
-                {/* Dynamic Time select (strictly upcoming times when today is selected) */}
-                <div className="form-group relative">
-                  <select
-                    id="time"
-                    value={form.time}
-                    onChange={handleChange('time')}
-                    onBlur={handleBlur('time')}
-                    disabled={isToday && availableSlots.length === 0}
-                    className={`form-input appearance-none cursor-pointer${errors.time ? ' error' : ''} ${
-                      isToday && availableSlots.length === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    aria-label="Preferred time"
-                    aria-describedby={errors.time ? 'time-error' : undefined}
-                    aria-invalid={!!errors.time}
-                  >
-                    <option value="" className="bg-mehfil-stone">
-                      {isToday && availableSlots.length === 0
-                        ? 'All slots for today have closed'
-                        : ''}
-                    </option>
-                    {availableSlots.map((slot) => (
-                      <option key={slot} value={slot} className="bg-mehfil-stone text-mehfil-cream">
-                        {slot}
+
+                {/* Dynamic Time select with matching reserved height (Zero layout shift) */}
+                <div className="form-group flex flex-col">
+                  <div className="relative">
+                    <select
+                      id="time"
+                      value={form.time}
+                      onChange={handleChange('time')}
+                      onBlur={handleBlur('time')}
+                      disabled={isToday && availableSlots.length === 0}
+                      className={`form-input appearance-none cursor-pointer transition-colors duration-200 ${
+                        errors.time ? 'error' : ''
+                      } ${isToday && availableSlots.length === 0 ? 'text-mehfil-cream/50 bg-white/[0.02]' : ''}`}
+                      aria-label="Preferred time"
+                      aria-describedby={errors.time ? 'time-error' : undefined}
+                      aria-invalid={!!errors.time}
+                    >
+                      <option value="" className="bg-mehfil-stone text-mehfil-cream/60">
+                        {isToday && availableSlots.length === 0
+                          ? 'No slots available today'
+                          : 'Select Time Slot'}
                       </option>
-                    ))}
-                  </select>
-                  <label
-                    htmlFor="time"
-                    className="form-label"
-                    style={
-                      form.time || (isToday && availableSlots.length === 0)
-                        ? { transform: 'translateY(-10px) scale(0.78)', color: '#D4A843', transformOrigin: 'left' }
-                        : {}
-                    }
-                  >
-                    Preferred Time *
-                  </label>
-                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                  {errors.time && (
-                    <p id="time-error" className="mt-1 text-xs text-red-400 pl-1" role="alert">
-                      {errors.time}
-                    </p>
-                  )}
-                  {isToday && availableSlots.length === 0 && (
-                    <p className="mt-1 text-[11px] text-amber-400/80 pl-1">
-                      Today's rooftop hours have ended. Please choose tomorrow or an upcoming date.
-                    </p>
-                  )}
+                      {availableSlots.map((slot) => (
+                        <option key={slot} value={slot} className="bg-mehfil-stone text-mehfil-cream">
+                          {slot}
+                        </option>
+                      ))}
+                    </select>
+
+                    <label
+                      htmlFor="time"
+                      className="form-label"
+                      style={{
+                        transform: 'translateY(-10px) scale(0.78)',
+                        color: form.time ? '#D4A843' : 'rgba(245, 237, 214, 0.45)',
+                        transformOrigin: 'left',
+                      }}
+                    >
+                      Preferred Time *
+                    </label>
+
+                    <svg
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+
+                  {/* Reserved height message slot prevents layout shift */}
+                  <div className="min-h-[1.25rem] mt-1 pl-1 text-xs flex items-center">
+                    {errors.time ? (
+                      <p id="time-error" className="text-red-400" role="alert">
+                        {errors.time}
+                      </p>
+                    ) : isToday && availableSlots.length === 0 ? (
+                      <p className="text-amber-400/90 text-[11px] truncate">
+                        Hours ended for today · Choose tomorrow
+                      </p>
+                    ) : null}
+                  </div>
                 </div>
               </div>
 
               {/* Occasion */}
-              <div className="form-group relative">
-                <select
-                  id="occasion"
-                  value={form.occasion}
-                  onChange={handleChange('occasion')}
-                  className="form-input appearance-none cursor-pointer"
-                >
-                  <option value="" className="bg-mehfil-stone"> </option>
-                  {['Birthday Party', 'Anniversary', 'Date Night', 'Business Dinner', 'Friends Gathering', 'Family Celebration', 'Other'].map((o) => (
-                    <option key={o} value={o} className="bg-mehfil-stone text-mehfil-cream">{o}</option>
-                  ))}
-                </select>
-                <label
-                  htmlFor="occasion"
-                  className="form-label"
-                  style={form.occasion ? { transform: 'translateY(-10px) scale(0.78)', color: '#D4A843', transformOrigin: 'left' } : {}}
-                >
-                  Special Occasion (optional)
-                </label>
-                <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+              <div className="form-group flex flex-col">
+                <div className="relative">
+                  <select
+                    id="occasion"
+                    value={form.occasion}
+                    onChange={handleChange('occasion')}
+                    className="form-input appearance-none cursor-pointer"
+                  >
+                    <option value="" className="bg-mehfil-stone">Select Occasion (optional)</option>
+                    {['Birthday Party', 'Anniversary', 'Date Night', 'Business Dinner', 'Friends Gathering', 'Family Celebration', 'Other'].map((o) => (
+                      <option key={o} value={o} className="bg-mehfil-stone text-mehfil-cream">{o}</option>
+                    ))}
+                  </select>
+                  <label
+                    htmlFor="occasion"
+                    className="form-label"
+                    style={{
+                      transform: 'translateY(-10px) scale(0.78)',
+                      color: form.occasion ? '#D4A843' : 'rgba(245, 237, 214, 0.45)',
+                      transformOrigin: 'left',
+                    }}
+                  >
+                    Special Occasion (optional)
+                  </label>
+                  <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-mehfil-gold/60 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <div className="min-h-[1.25rem] mt-1" />
               </div>
 
               {/* Notes */}
