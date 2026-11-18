@@ -75,8 +75,17 @@ function scrollTo(href) {
   if (el) el.scrollIntoView({ behavior: 'smooth' });
 }
 
-export default function Footer() {
+export default function Footer({ onNavigate }) {
   const year = new Date().getFullYear();
+
+  const handleLegalClick = (target) => (e) => {
+    e.preventDefault();
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      window.location.hash = target === 'privacy' ? '#privacy-policy' : '#terms-of-service';
+    }
+  };
 
   return (
     <footer
@@ -257,8 +266,20 @@ export default function Footer() {
           </motion.p>
 
           <div className="flex gap-4">
-            <a href="#" className="hover:text-mehfil-gold transition-colors duration-300">Privacy Policy</a>
-            <a href="#" className="hover:text-mehfil-gold transition-colors duration-300">Terms of Service</a>
+            <a
+              href="#privacy-policy"
+              onClick={handleLegalClick('privacy')}
+              className="hover:text-mehfil-gold transition-colors duration-300 cursor-pointer"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="#terms-of-service"
+              onClick={handleLegalClick('terms')}
+              className="hover:text-mehfil-gold transition-colors duration-300 cursor-pointer"
+            >
+              Terms of Service
+            </a>
           </div>
         </div>
       </div>
