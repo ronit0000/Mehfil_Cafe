@@ -115,6 +115,48 @@ export default function Menu() {
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
 
+  // Mouse & touch drag tracking for the category ribbon (seamless finger swipe & mouse slide)
+  const isCatDragging = useRef(false);
+  const catStartX = useRef(0);
+  const catScrollLeft = useRef(0);
+  const catHasMoved = useRef(false);
+
+  const handleCatMouseDown = (e) => {
+    isCatDragging.current = true;
+    catHasMoved.current = false;
+    catStartX.current = e.pageX - (categoryBarRef.current?.offsetLeft || 0);
+    catScrollLeft.current = categoryBarRef.current?.scrollLeft || 0;
+  };
+
+  const handleCatMouseMove = (e) => {
+    if (!isCatDragging.current || !categoryBarRef.current) return;
+    const x = e.pageX - (categoryBarRef.current.offsetLeft || 0);
+    const walk = (x - catStartX.current) * 1.4;
+    if (Math.abs(x - catStartX.current) > 5) {
+      catHasMoved.current = true;
+    }
+    categoryBarRef.current.scrollLeft = catScrollLeft.current - walk;
+  };
+
+  const handleCatMouseUp = () => {
+    isCatDragging.current = false;
+  };
+
+  const handleCatTouchStart = (e) => {
+    catHasMoved.current = false;
+    if (e.touches && e.touches[0]) {
+      catStartX.current = e.touches[0].pageX;
+    }
+  };
+
+  const handleCatTouchMove = (e) => {
+    if (e.touches && e.touches[0]) {
+      if (Math.abs(e.touches[0].pageX - catStartX.current) > 6) {
+        catHasMoved.current = true;
+      }
+    }
+  };
+
   // Active category title for styling the buttons
   const activeCategoryTitle = folios[currentPage]?.categoryTitle;
 
@@ -256,14 +298,21 @@ export default function Menu() {
 
         {/* ATTRACTIVE BLENDED ROYAL CATEGORY QUICK-JUMP RIBBON */}
         <div className="w-full max-w-2xl lg:max-w-3xl mx-auto mb-3 sm:mb-4.5 px-1 relative shrink-0">
-          {/* Subtle gradient edge fades for smooth horizontal scrolling cue */}
-          <div className="absolute left-0 top-0 bottom-0 w-5 bg-gradient-to-r from-[#0D0B08] to-transparent pointer-events-none z-10 sm:hidden" />
-          <div className="absolute right-0 top-0 bottom-0 w-5 bg-gradient-to-l from-[#0D0B08] to-transparent pointer-events-none z-10 sm:hidden" />
-
           <div
             ref={categoryBarRef}
-            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1 scroll-smooth"
-            style={{ touchAction: 'pan-x' }}
+            onMouseDown={handleCatMouseDown}
+            onMouseMove={handleCatMouseMove}
+            onMouseUp={handleCatMouseUp}
+            onMouseLeave={handleCatMouseUp}
+            onTouchStart={handleCatTouchStart}
+            onTouchMove={handleCatTouchMove}
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 px-1 select-none cursor-grab active:cursor-grabbing"
+            style={{
+              touchAction: 'pan-x',
+              WebkitOverflowScrolling: 'touch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
           >
             {categoryButtons.map((cat) => {
               const isActive = activeCategoryTitle === cat.title;
@@ -272,8 +321,14 @@ export default function Menu() {
                   key={cat.title}
                   id={`cat-btn-${cat.title.replace(/\s+/g, '-')}`}
                   type="button"
-                  onClick={() => jumpToCategory(cat.title)}
-                  className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-serif tracking-wide transition-all duration-300 shrink-0 flex items-center gap-1.5 cursor-pointer backdrop-blur-md ${
+                  onClick={(e) => {
+                    if (catHasMoved.current) {
+                      e.preventDefault();
+                      return;
+                    }
+                    jumpToCategory(cat.title);
+                  }}
+                  className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-serif tracking-wide transition-all duration-300 shrink-0 flex items-center gap-1.5 cursor-pointer backdrop-blur-md select-none ${
                     isActive
                       ? 'bg-[#D4A843]/20 text-[#FAF6EC] border border-[#D4A843] shadow-[0_0_15px_rgba(212,168,67,0.35)] font-semibold scale-[1.03]'
                       : 'bg-[#18130E]/70 text-[#D4C4A8]/70 border border-[#D4A843]/20 hover:border-[#D4A843]/50 hover:text-[#FAF6EC] hover:bg-[#221A12]'
