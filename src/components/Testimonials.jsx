@@ -203,7 +203,7 @@ function StarRating({ count }) {
   );
 }
 
-const REVIEW_AUTOPLAY_MS = 3800;
+const REVIEW_AUTOPLAY_MS = 2000; // 2.0s time interval per review movement as requested
 
 export default function Testimonials() {
   const ref = useRef(null);
