@@ -114,38 +114,58 @@ export default function Contact() {
           ))}
         </div>
 
-        {/* Map placeholder */}
+        {/* Live Google Map Visual Section */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={inView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="relative rounded-3xl overflow-hidden"
-          style={{ height: '340px' }}
+          className="relative rounded-3xl overflow-hidden border border-mehfil-gold/20 shadow-card"
+          style={{ height: '420px' }}
         >
-          {/* Styled map placeholder */}
-          <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #111 0%, #1A1A1A 100%)', border: '1px solid rgba(212,168,67,0.15)' }}
-          >
-            <div className="text-center">
+          {/* Live Google Maps Iframe as Background */}
+          <iframe
+            title="Mehfil Berhampur Google Map Location"
+            src="https://maps.google.com/maps?q=19.2800601,84.7867065+(Mehfil+Berhampur)&t=&z=16&ie=UTF8&iwloc=B&output=embed"
+            className="absolute inset-0 w-full h-full border-0"
+            style={{
+              filter: 'contrast(1.05) saturate(1.1)',
+            }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            allowFullScreen
+          />
+
+          {/* Vignette gradients to seamlessly blend map edges with dark theme */}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#0A0A0A] via-transparent to-black/40" />
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-black/40 via-transparent to-black/40" />
+
+          {/* Floating Glassmorphism Location Card */}
+          <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+            <div className="glass-light p-6 sm:p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl border border-mehfil-gold/30 pointer-events-auto backdrop-blur-md">
               <div
-                className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, rgba(212,168,67,0.2), rgba(232,120,42,0.1))' }}
+                className="w-14 h-14 rounded-full mx-auto mb-3.5 flex items-center justify-center shadow-glow-sm"
+                style={{ background: 'linear-gradient(135deg, rgba(212,168,67,0.3), rgba(232,120,42,0.2))' }}
               >
-                <svg className="w-8 h-8 text-mehfil-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <svg className="w-7 h-7 text-mehfil-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
-              <p className="font-serif text-xl text-mehfil-cream mb-1">Mehfil Berhampur</p>
-              <p className="text-mehfil-cream/50 text-sm mb-5">Near NH Side, Berhampur, Odisha</p>
+
+              <h4 className="font-serif text-xl sm:text-2xl text-mehfil-cream font-medium mb-1">
+                Mehfil Berhampur
+              </h4>
+              <p className="text-mehfil-cream/70 text-xs sm:text-sm mb-5 font-light">
+                Near NH Side, Berhampur, Odisha
+              </p>
+
               <a
                 href={GOOGLE_MAPS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-outline text-sm py-3 px-6 inline-flex items-center gap-2"
+                className="btn-outline text-xs sm:text-sm py-3 px-6 w-full inline-flex items-center justify-center gap-2 font-semibold tracking-wider hover:shadow-glow-sm"
               >
-                <span>Open in Google Maps</span>
+                <span>OPEN IN GOOGLE MAPS</span>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
