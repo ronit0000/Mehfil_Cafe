@@ -275,16 +275,16 @@ export default function Menu() {
     <section
       id="menu"
       ref={sectionRef}
-      className="relative w-full min-h-screen flex flex-col justify-center items-center py-8 sm:py-14 px-3 sm:px-6 select-none overflow-x-clip max-w-full"
+      className="relative w-full min-h-screen flex flex-col justify-center items-center py-8 sm:py-14 px-3 sm:px-6 select-none"
       style={{
         background: 'linear-gradient(180deg, #0A0A0A 0%, #130E09 50%, #0A0A0A 100%)',
       }}
       aria-label="Our Menu"
     >
-      {/* Royal Ambient Glow (strictly clipped so it never leaks horizontal width) */}
+      {/* Royal Ambient Glow (safely sized for mobile & desktop to prevent horizontal blowout) */}
       <div
         aria-hidden="true"
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[600px] h-[350px] sm:h-[600px] bg-[#D4A843]/7 blur-[120px] rounded-full pointer-events-none overflow-hidden"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-[600px] h-72 sm:h-[600px] bg-[#D4A843]/7 blur-[100px] sm:blur-[140px] rounded-full pointer-events-none"
       />
 
       <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center flex-1 h-full">

@@ -12,9 +12,6 @@
     background-color: #0A0A0A;
     overscroll-behavior: none;
     -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
   }
 
   body {
@@ -23,15 +20,8 @@
     /* 🔑 Prevent elastic scroll from revealing white behind body */
     background-color: #0A0A0A;
     overscroll-behavior: none;
-    /* Force GPU compositing layer on the whole document */
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
     -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
     overflow-x: hidden;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
   }
 }
 
