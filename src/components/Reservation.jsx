@@ -591,10 +591,6 @@ export default function Reservation() {
                   </span>
                 )}
               </button>
-
-              <p className="text-center text-xs text-mehfil-cream/55 mt-1.5 max-w-xs sm:max-w-md mx-auto leading-normal">
-                Your prefilled reservation details will open in WhatsApp to chat with Mehfil Berhampur (+91 77899 22251).
-              </p>
             </form>
           </motion.div>
         </div>
