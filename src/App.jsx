@@ -24,6 +24,14 @@ export default function App() {
   });
 
   useEffect(() => {
+    // Prevent browser from auto-jumping to previous scroll positions on refresh
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+    if (!window.location.hash || window.location.hash === '#home') {
+      window.scrollTo(0, 0);
+    }
+
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
       if (hash === '#privacy-policy' || hash === '#privacy') {

@@ -169,16 +169,24 @@ export default function Menu() {
     }
   };
 
-  // Keep active button scrolled into center of the ribbon
+  // Guard to prevent scrolling on page load
+  const isInitialMount = useRef(true);
+
+  // Keep active button scrolled into center of the ribbon (purely container scroll, NEVER window scroll)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (!activeCategoryTitle || !categoryBarRef.current) return;
     const btnId = `cat-btn-${activeCategoryTitle.replace(/\s+/g, '-')}`;
     const btnEl = document.getElementById(btnId);
-    if (btnEl) {
-      btnEl.scrollIntoView({
+    const container = categoryBarRef.current;
+    if (btnEl && container) {
+      const targetScroll = btnEl.offsetLeft - (container.offsetWidth / 2) + (btnEl.offsetWidth / 2);
+      container.scrollTo({
+        left: targetScroll,
         behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
       });
     }
   }, [activeCategoryTitle]);
