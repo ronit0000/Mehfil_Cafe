@@ -1,5 +1,5 @@
 // src/components/Menu.jsx
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { menuPages } from '../data/menuData';
 
@@ -54,9 +54,30 @@ export default function Menu() {
   const sectionRef = useRef(null);
   const inView = useInView(sectionRef, { once: true, margin: '-60px' });
 
-  // 1-to-1 page presentation: one by one royal folio for both PC and Mobile
-  const totalPages = menuPages.length; // 16 categories
-  const [currentPage, setCurrentPage] = useState(0); // 0 to 15
+  // Chunk items into clean folios of at most 5 items per page.
+  // This completely eliminates internal vertical scrolling, ensuring the user is NEVER trapped
+  // and can freely scroll the entire website vertically on their phone!
+  const folios = useMemo(() => {
+    const list = [];
+    menuPages.forEach((cat) => {
+      const items = cat.items;
+      const maxItems = 5;
+      const totalParts = Math.ceil(items.length / maxItems);
+      for (let i = 0; i < items.length; i += maxItems) {
+        list.push({
+          categoryTitle: cat.title,
+          categorySubtitle: cat.subtitle,
+          items: items.slice(i, i + maxItems),
+          part: Math.floor(i / maxItems) + 1,
+          totalParts,
+        });
+      }
+    });
+    return list;
+  }, []);
+
+  const totalPages = folios.length;
+  const [currentPage, setCurrentPage] = useState(0);
   const [flipDirection, setFlipDirection] = useState(1);
 
   const touchStartX = useRef(0);
@@ -88,8 +109,10 @@ export default function Menu() {
     const diffX = touchStartX.current - e.changedTouches[0].clientX;
     const diffY = touchStartY.current - e.changedTouches[0].clientY;
 
-    // Detect horizontal swipe
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+    // Detect horizontal swipe gesture:
+    // Only turn pages if the swipe is predominantly horizontal (at least 1.5x more horizontal than vertical)
+    // This allows the user to scroll the website vertically without accidentally flipping pages!
+    if (Math.abs(diffX) > Math.abs(diffY) * 1.4 && Math.abs(diffX) > 35) {
       if (diffX > 0) {
         turnNext();
       } else {
@@ -109,9 +132,8 @@ export default function Menu() {
     }
   };
 
-  // Current Category Data
-  const currentCategory = menuPages[currentPage];
-  const allCategoryItems = currentCategory.items;
+  // Current Folio Data
+  const currentFolio = folios[currentPage];
 
   // 3D Realistic Book Curl & Page Turn Animation
   const pageFlipVariants = {
@@ -146,7 +168,7 @@ export default function Menu() {
     <section
       id="menu"
       ref={sectionRef}
-      className="relative w-full min-h-[100dvh] flex flex-col justify-center items-center py-4 sm:py-8 px-3 sm:px-6 overflow-hidden select-none"
+      className="relative w-full min-h-screen flex flex-col justify-center items-center py-8 sm:py-14 px-3 sm:px-6 select-none"
       style={{
         background: 'linear-gradient(180deg, #0A0A0A 0%, #130E09 50%, #0A0A0A 100%)',
       }}
@@ -158,13 +180,13 @@ export default function Menu() {
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] sm:w-[1000px] h-[500px] sm:h-[800px] bg-[#D4A843]/7 blur-[180px] rounded-full pointer-events-none"
       />
 
-      <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center flex-1 h-full min-h-0">
+      <div className="w-full max-w-5xl mx-auto flex flex-col items-center justify-center flex-1 h-full">
         {/* Section Heading */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center mb-2.5 sm:mb-4 shrink-0"
+          className="text-center mb-3 sm:mb-5 shrink-0"
         >
           <p className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-[#D4A843]">
             Culinary Heritage
@@ -175,10 +197,11 @@ export default function Menu() {
           </h2>
         </motion.div>
 
-        {/* 3D ROYAL FOLIO CASING (Scaled large for PC and perfectly responsive, single page flip) */}
+        {/* 3D ROYAL FOLIO CASING
+            touch-action: pan-y enables smooth native browser window scrolling on mobile vertical drag! */}
         <div
-          className="relative w-full max-w-2xl lg:max-w-3xl mx-auto cursor-grab active:cursor-grabbing touch-pan-y"
-          style={{ perspective: '2000px' }}
+          className="relative w-full max-w-2xl lg:max-w-3xl mx-auto cursor-grab active:cursor-grabbing"
+          style={{ perspective: '2000px', touchAction: 'pan-y' }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -195,7 +218,7 @@ export default function Menu() {
             <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-l-2 border-[#D4A843]/60 rounded-bl-lg pointer-events-none" />
             <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-5 sm:w-7 h-5 sm:h-7 border-b-2 border-r-2 border-[#D4A843]/60 rounded-br-lg pointer-events-none" />
 
-            {/* Animated Royal Folio Page (Single large page on PC & mobile) */}
+            {/* Animated Royal Folio Page (Single page on PC & mobile, strictly zero internal scroll trap) */}
             <AnimatePresence mode="wait" custom={flipDirection}>
               <motion.div
                 key={`page-${currentPage}`}
@@ -208,8 +231,8 @@ export default function Menu() {
                 dragConstraints={{ left: 0, right: 0 }}
                 dragElastic={0.15}
                 onDragEnd={handleDragEnd}
-                /* Large commanding height for PC (76vh / max 720px), perfectly proportioned */
-                className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between h-[calc(100dvh-135px)] min-h-[500px] max-h-[720px] md:h-[76vh]"
+                /* Fits 5 items perfectly without any vertical overflow or inner scrollbar */
+                className="bg-[#FAF6EC] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl relative border border-[#E3D9C3] flex flex-col justify-between h-[510px] sm:h-[570px] md:h-[620px]"
                 style={{
                   transformStyle: 'preserve-3d',
                 }}
@@ -233,50 +256,57 @@ export default function Menu() {
                 </div>
 
                 {/* Grand Folio Header */}
-                <div className="pt-4 sm:pt-6 pb-2 text-center px-4 sm:px-8 relative z-10 shrink-0 border-b border-[#EADECA]/80">
-                  <span className="text-[10px] sm:text-xs uppercase tracking-widest text-[#9E6D18] font-semibold">
-                    Section {currentPage + 1} of {totalPages}
-                  </span>
-                  <h3 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-[#8C5E14] tracking-tight mt-0.5">
-                    {currentCategory.title}
+                <div className="pt-3.5 sm:pt-6 pb-2 text-center px-4 sm:px-8 relative z-10 shrink-0 border-b border-[#EADECA]/80">
+                  <div className="flex items-center justify-between text-[10px] sm:text-xs text-[#9E6D18] font-semibold uppercase tracking-wider mb-0.5">
+                    <span className="truncate max-w-[70%]">{currentFolio.categoryTitle}</span>
+                    {currentFolio.totalParts > 1 ? (
+                      <span className="font-mono text-[#8C5E14] bg-[#D4A843]/15 px-2 py-0.5 rounded-full border border-[#D4A843]/30 shrink-0">
+                        Part {currentFolio.part} of {currentFolio.totalParts}
+                      </span>
+                    ) : (
+                      <span className="font-mono text-[#8C5E14] shrink-0">Complete</span>
+                    )}
+                  </div>
+                  <h3 className="font-serif text-xl sm:text-3xl lg:text-4xl font-bold text-[#8C5E14] tracking-tight">
+                    {currentFolio.categoryTitle}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-[#54483A] italic font-light mt-1 max-w-xl mx-auto leading-relaxed">
-                    {currentCategory.subtitle}
+                  <p className="text-[10.5px] sm:text-xs text-[#54483A] italic font-light mt-0.5 max-w-xl mx-auto line-clamp-1">
+                    {currentFolio.categorySubtitle}
                   </p>
-                  <div className="flex items-center justify-center gap-2 mt-2">
+                  <div className="flex items-center justify-center gap-2 mt-1.5">
                     <span className="w-10 sm:w-16 h-px bg-gradient-to-r from-transparent to-[#9E6D18]/60" />
                     <span className="text-[9px] text-[#9E6D18]/70">❖</span>
                     <span className="w-10 sm:w-16 h-px bg-gradient-to-l from-transparent to-[#9E6D18]/60" />
                   </div>
                 </div>
 
-                {/* Folio Items (Smooth scroll, large generous typography for PC and clean on mobile) */}
-                <div className="px-4 sm:px-8 py-3 space-y-2.5 sm:space-y-3.5 relative z-10 flex-1 overflow-y-auto no-scrollbar flex flex-col justify-start">
-                  {allCategoryItems.map((item) => (
+                {/* Folio Items (Fixed items per folio, zero internal vertical scroll, zero scroll trap!) */}
+                <div className="px-4 sm:px-8 py-2 sm:py-3 space-y-2 sm:space-y-3 relative z-10 flex-1 overflow-hidden flex flex-col justify-start">
+                  {currentFolio.items.map((item) => (
                     <div
                       key={item.id}
-                      className="group pb-2 sm:pb-2.5 border-b border-[#EADECA]/70 last:border-b-0"
+                      className="group pb-1.5 sm:pb-2 border-b border-[#EADECA]/70 last:border-b-0"
                     >
-                      <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-start justify-between gap-2 mb-0.5">
                         <div className="flex items-start gap-1.5 sm:gap-2 flex-1 min-w-0">
                           <DietaryBadge type={item.dietaryType} />
-                          <h4 className="font-serif text-[14px] sm:text-[16px] font-bold text-[#8C5E14] leading-snug">
+                          <h4 className="font-serif text-[13.5px] sm:text-[15.5px] font-bold text-[#8C5E14] leading-snug">
                             {item.name}
                           </h4>
                         </div>
                         {item.badge && <RoyalBadge text={item.badge} />}
                       </div>
-                      <p className="text-[11px] sm:text-[13px] text-[#453A2D] leading-relaxed font-light pl-4.5 sm:pl-5 text-justify">
+                      <p className="text-[10.5px] sm:text-[12.5px] text-[#453A2D] leading-relaxed font-light pl-4.5 sm:pl-5 text-justify line-clamp-2 sm:line-clamp-3">
                         {item.desc}
                       </p>
                     </div>
                   ))}
 
-                  {/* Decorative insignia for shorter categories */}
-                  {allCategoryItems.length <= 4 && (
-                    <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-4">
+                  {/* Decorative insignia for shorter folios */}
+                  {currentFolio.items.length <= 3 && (
+                    <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-3">
                       <span className="text-xs sm:text-sm tracking-widest text-[#9E6D18]">❖ ❖ ❖</span>
-                      <p className="font-serif italic text-[11px] text-[#54483A] mt-1">
+                      <p className="font-serif italic text-[10px] sm:text-[11px] text-[#54483A] mt-1">
                         Mehfil Rooftop Culinary Archive
                       </p>
                     </div>
@@ -286,14 +316,14 @@ export default function Menu() {
                 {/* Folio Footer with Instruction & Page Navigation */}
                 <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-t border-[#EADECA]/80 relative z-10 bg-[#F5EFE0]/80 flex items-center justify-between shrink-0">
                   <span className="text-[9px] sm:text-[11px] font-mono uppercase tracking-wider text-[#735818]">
-                    Page {currentPage + 1} of {totalPages}
+                    Folio {currentPage + 1} of {totalPages}
                   </span>
 
                   {/* Clear Swipe/Drag Instruction */}
                   <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-[#8C5E14] font-medium tracking-wide">
                     <span className="animate-pulse">←</span>
                     <span className="font-serif italic text-[11px] sm:text-xs">
-                      Swipe or drag to turn page
+                      Swipe left / right to turn page
                     </span>
                     <span className="animate-pulse">→</span>
                   </div>
