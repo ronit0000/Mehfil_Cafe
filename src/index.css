@@ -138,7 +138,7 @@
     @apply relative;
   }
   .form-input {
-    @apply w-full bg-transparent border border-white/10 rounded-xl px-4 sm:px-5 pt-6 pb-3 text-mehfil-cream text-base sm:text-sm outline-none transition-all duration-300;
+    @apply w-full bg-transparent border border-white/10 rounded-xl px-3.5 sm:px-4 pt-4 sm:pt-5 pb-1.5 sm:pb-2 text-mehfil-cream text-xs sm:text-sm outline-none transition-all duration-300;
     font-family: 'Inter', sans-serif;
     -webkit-appearance: none;
   }
@@ -151,12 +151,12 @@
   }
   .form-input:focus ~ .form-label,
   .form-input:not(:placeholder-shown) ~ .form-label {
-    transform: translateY(-10px) scale(0.78);
+    transform: translateY(-7px) scale(0.75);
     color: #D4A843;
     transform-origin: left;
   }
   .form-label {
-    @apply absolute left-5 top-4 text-sm pointer-events-none transition-all duration-300;
+    @apply absolute left-3.5 sm:left-4 top-2.5 sm:top-3.5 text-xs sm:text-xs pointer-events-none transition-all duration-300;
     color: rgba(245, 237, 214, 0.45);
     transform-origin: left;
   }
