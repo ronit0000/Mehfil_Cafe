@@ -203,7 +203,7 @@ function StarRating({ count }) {
   );
 }
 
-const REVIEW_AUTOPLAY_MS = 2000; // 2.0s time interval per review movement as requested
+const REVIEW_AUTOPLAY_MS = 5000; // 5.0s time interval per review movement as requested
 
 export default function Testimonials() {
   const ref = useRef(null);
@@ -233,7 +233,7 @@ export default function Testimonials() {
     setCurrent((prev) => (prev - 1 + total) % total);
   }, [total]);
 
-  // Instagram story-style hold to pause
+  // Instagram story-style hold to pause with precise 5-second interval
   useEffect(() => {
     if (isHolding || total <= 1) return;
 
@@ -242,8 +242,8 @@ export default function Testimonials() {
 
     const timer = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) {
-          goToNext();
+        if (prev + step >= 100) {
+          setCurrent((c) => (c + 1) % total);
           return 0;
         }
         return prev + step;
@@ -251,7 +251,7 @@ export default function Testimonials() {
     }, tickInterval);
 
     return () => clearInterval(timer);
-  }, [isHolding, total, goToNext]);
+  }, [isHolding, total]);
 
   // Pointer interactions: tap left/right to skip, hold to pause
   const handlePointerDown = () => {
@@ -406,11 +406,10 @@ export default function Testimonials() {
                   setCurrent(0);
                   setProgress(0);
                 }}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                  filter === item.id
-                    ? 'bg-mehfil-gold text-black font-semibold shadow-glow-sm'
-                    : 'bg-white/5 text-mehfil-cream/60 hover:text-white border border-white/10'
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${filter === item.id
+                  ? 'bg-mehfil-gold text-black font-semibold shadow-glow-sm'
+                  : 'bg-white/5 text-mehfil-cream/60 hover:text-white border border-white/10'
+                  }`}
               >
                 {item.label}
               </button>
