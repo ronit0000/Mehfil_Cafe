@@ -2,8 +2,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 
-const GOOGLE_MAPS_URL =
-  'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D';
+import { addressLabel, site } from '../data/site';
 
 const contactCards = [
   {
@@ -14,8 +13,8 @@ const contactCards = [
       </svg>
     ),
     title: 'Visit Us',
-    lines: ['Mehfil Berhampur', 'Near NH Side, Berhampur, Odisha'],
-    action: { label: 'Get Directions', href: GOOGLE_MAPS_URL },
+    lines: ['Mehfil Berhampur', addressLabel],
+    action: { label: 'Get Directions', href: site.mapsUrl },
   },
   {
     icon: (
@@ -24,8 +23,8 @@ const contactCards = [
       </svg>
     ),
     title: 'Call Us',
-    lines: ['+91 77899 22251', 'Direct Line for Bookings'],
-    action: { label: 'Call Now', href: 'tel:+917789922251' },
+    lines: [site.phoneLabel, 'Direct Line for Bookings'],
+    action: { label: 'Call Now', href: `tel:${site.phone}` },
   },
   {
     icon: (
@@ -35,7 +34,7 @@ const contactCards = [
     ),
     title: 'Instagram',
     lines: ['@_mehfil_berhampur', 'Tag us in your stories!'],
-    action: { label: 'Follow on Instagram', href: 'https://www.instagram.com/_mehfil_berhampur/' },
+    action: { label: 'Follow on Instagram', href: site.instagramUrl },
   },
   {
     icon: (
@@ -44,7 +43,7 @@ const contactCards = [
       </svg>
     ),
     title: 'Opening Hours',
-    lines: ['Open Daily', '11:00 AM – 11:00 PM', 'Late Night Rooftop Dining'],
+    lines: ['Open Daily', site.hours.label, 'Late Night Rooftop Dining'],
     action: null,
   },
 ];
@@ -63,7 +62,7 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={false}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
           className="text-center mb-14"
@@ -80,7 +79,7 @@ export default function Contact() {
           {contactCards.map((card, i) => (
             <motion.div
               key={card.title}
-              initial={{ opacity: 0, y: 40 }}
+              initial={false}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.7, delay: i * 0.1 }}
               className="glass rounded-3xl p-6 flex flex-col gap-4 group hover:border-mehfil-gold/30 transition-colors duration-300"
@@ -116,7 +115,7 @@ export default function Contact() {
 
         {/* Live Google Map Visual Section */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
+          initial={false}
           animate={inView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.4 }}
           className="relative rounded-3xl overflow-hidden border border-mehfil-gold/20 shadow-card"
@@ -156,11 +155,11 @@ export default function Contact() {
                 Mehfil Berhampur
               </h4>
               <p className="text-mehfil-cream/70 text-xs sm:text-sm mb-5 font-light">
-                Near NH Side, Berhampur, Odisha
+                {addressLabel}
               </p>
 
               <a
-                href={GOOGLE_MAPS_URL}
+                href={site.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-outline text-xs sm:text-sm py-3 px-6 w-full inline-flex items-center justify-center gap-2 font-semibold tracking-wider hover:shadow-glow-sm"

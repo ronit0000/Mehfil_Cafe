@@ -195,7 +195,7 @@ export default function Menu() {
   const turnNext = () => {
     if (currentPage < totalPages - 1) {
       setFlipDirection(1);
-      setCurrentPage((prev) => prev + 1);
+      setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1));
     }
   };
 
@@ -203,7 +203,7 @@ export default function Menu() {
   const turnPrev = () => {
     if (currentPage > 0) {
       setFlipDirection(-1);
-      setCurrentPage((prev) => prev - 1);
+      setCurrentPage((prev) => Math.max(prev - 1, 0));
     }
   };
 
@@ -230,6 +230,7 @@ export default function Menu() {
 
   // Drag handler for desktop mouse drag
   const handleDragEnd = (event, info) => {
+    if (event.pointerType === 'touch' || 'changedTouches' in event) return;
     const offsetX = info.offset.x;
     const velocityX = info.velocity.x;
     if (offsetX < -40 || velocityX < -200) {
@@ -329,8 +330,9 @@ export default function Menu() {
                   key={cat.title}
                   id={`cat-btn-${cat.title.replace(/\s+/g, '-')}`}
                   type="button"
+                  aria-pressed={isActive}
                   onClick={(e) => {
-                    if (catHasMoved.current) {
+                    if (e.detail !== 0 && catHasMoved.current) {
                       e.preventDefault();
                       return;
                     }
@@ -355,6 +357,18 @@ export default function Menu() {
         <div
           className="relative w-full max-w-2xl lg:max-w-3xl mx-auto cursor-grab active:cursor-grabbing"
           style={{ perspective: '2000px', touchAction: 'pan-y' }}
+          role="group"
+          aria-label="Menu flipbook. Use the left and right arrow keys to turn pages."
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              turnPrev();
+            } else if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              turnNext();
+            }
+          }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
@@ -457,17 +471,16 @@ export default function Menu() {
 
                 {/* Folio Footer with Instruction & Page Navigation */}
                 <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-t border-[#EADECA]/80 relative z-10 bg-[#F5EFE0]/80 flex items-center justify-between shrink-0">
-                  <span className="text-[9px] sm:text-[11px] font-mono uppercase tracking-wider text-[#735818]">
+                  <span aria-live="polite" className="text-[9px] sm:text-[11px] font-mono uppercase tracking-wider text-[#735818]">
                     Folio {currentPage + 1} of {totalPages}
                   </span>
 
-                  {/* Clear Swipe/Drag Instruction */}
                   <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-[#8C5E14] font-medium tracking-wide">
-                    <span className="animate-pulse">←</span>
+                    <span className="animate-pulse" aria-hidden="true">←</span>
                     <span className="font-serif italic text-[11px] sm:text-xs">
                       Swipe left / right to turn page
                     </span>
-                    <span className="animate-pulse">→</span>
+                    <span className="animate-pulse" aria-hidden="true">→</span>
                   </div>
 
                   <span className="text-[9px] sm:text-[11px] font-mono text-[#735818] hidden sm:inline">

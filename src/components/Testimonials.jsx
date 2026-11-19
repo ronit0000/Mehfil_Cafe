@@ -1,6 +1,6 @@
 // src/components/Testimonials.jsx
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { animate, motion, useInView, useMotionValue, AnimatePresence } from 'framer-motion';
 
 const GOOGLE_MAPS_URL =
   'https://www.google.com/maps/place/Mehfil+Berhampur/@19.2800601,84.7841316,822m/data=!3m2!1e3!4b1!4m6!3m5!1s0x3a3d5b004d6e8d1b:0x44f2d5dc61db0c4a!8m2!3d19.2800601!4d84.7867065!16s%2Fg%2F11z0pdj8vk?entry=ttu&g_ep=EgoyMDI2MTExNS4wIKXMDSoASAFQAw%3D%3D';
@@ -203,16 +203,20 @@ function StarRating({ count }) {
   );
 }
 
-const REVIEW_AUTOPLAY_MS = 5000; // 5.0s time interval per review movement as requested
+const REVIEW_DURATION = 5;
+const controlClass = 'rounded-full border border-mehfil-gold/30 px-3 py-2 text-xs font-semibold text-mehfil-gold hover:bg-mehfil-gold/10';
 
 export default function Testimonials() {
   const ref = useRef(null);
+  const carouselRef = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
+  const carouselInView = useInView(carouselRef, { amount: 0.25 });
   const [filter, setFilter] = useState('all');
   const [current, setCurrent] = useState(0);
   const [isHolding, setIsHolding] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const pointerStartTime = useRef(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progress = useMotionValue(0);
+  const pointerStart = useRef(null);
 
   const filtered = googleReviews.filter((r) => {
     if (filter === '5') return r.rating === 5;
@@ -223,58 +227,59 @@ export default function Testimonials() {
   const total = filtered.length;
   const activeReview = filtered[current % total] || filtered[0];
 
-  const goToNext = useCallback(() => {
-    setProgress(0);
-    setCurrent((prev) => (prev + 1) % total);
-  }, [total]);
+  const goToReview = useCallback((step) => {
+    progress.jump(0);
+    setCurrent((prev) => (prev + step + total) % total);
+  }, [progress, total]);
 
-  const goToPrev = useCallback(() => {
-    setProgress(0);
-    setCurrent((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
-  // Instagram story-style hold to pause with precise 5-second interval
   useEffect(() => {
-    if (isHolding || total <= 1) return;
+    if (!carouselInView || isHolding || isPaused || total <= 1) return;
 
-    const tickInterval = 50;
-    const step = (tickInterval / REVIEW_AUTOPLAY_MS) * 100;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev + step >= 100) {
-          setCurrent((c) => (c + 1) % total);
-          return 0;
-        }
-        return prev + step;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let playback;
+    function updatePlayback() {
+      playback?.stop();
+      if (reducedMotion.matches) return;
+      playback = animate(progress, 1, {
+        duration: REVIEW_DURATION * (1 - progress.get()),
+        ease: 'linear',
+        onComplete: () => goToReview(1),
       });
-    }, tickInterval);
-
-    return () => clearInterval(timer);
-  }, [isHolding, total]);
+    }
+    updatePlayback();
+    reducedMotion.addEventListener('change', updatePlayback);
+    return () => {
+      playback?.stop();
+      reducedMotion.removeEventListener('change', updatePlayback);
+    };
+  }, [carouselInView, current, goToReview, isHolding, isPaused, progress, total]);
 
   // Pointer interactions: tap left/right to skip, hold to pause
-  const handlePointerDown = () => {
-    pointerStartTime.current = Date.now();
+  const handlePointerDown = (e) => {
+    if (!e.isPrimary || e.button !== 0 || e.target.closest('a')) return;
+    pointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
     setIsHolding(true);
   };
 
   const handlePointerUp = (e) => {
+    if (!e.isPrimary || !pointerStart.current) return;
+    const { x, y, time } = pointerStart.current;
+    pointerStart.current = null;
     setIsHolding(false);
-    const duration = Date.now() - pointerStartTime.current;
-    if (duration < 220 && e.currentTarget) {
+    if (Date.now() - time < 220 && Math.hypot(e.clientX - x, e.clientY - y) < 10) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      if (clickX < rect.width * 0.35) {
-        goToPrev();
-      } else {
-        goToNext();
-      }
+      goToReview(e.clientX - rect.left < rect.width * 0.35 ? -1 : 1);
     }
   };
 
   const handlePointerCancel = () => {
+    pointerStart.current = null;
     setIsHolding(false);
+  };
+
+  const navigateFromControls = (step) => {
+    setIsPaused(true);
+    goToReview(step);
   };
 
   return (
@@ -316,7 +321,7 @@ export default function Testimonials() {
         </motion.div>
 
         {/* ============================================================== */}
-        {/* 1. GOOGLE'S REVIEW CARD (Explicitly stated as Google's Review) */}
+        {/* Google Maps listing */}
         {/* ============================================================== */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -338,21 +343,9 @@ export default function Testimonials() {
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-inner">
                 <GoogleLogo className="w-7 h-7" />
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-serif font-bold text-white tracking-wide">
-                    Google's Review
-                  </h3>
-                  <span className="text-[10px] uppercase font-semibold text-[#34A853] bg-[#34A853]/15 px-2.5 py-0.5 rounded-full border border-[#34A853]/30">
-                    Verified Listing
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <StarRating count={4.8} />
-                  <span className="text-xs font-bold text-white">4.8</span>
-                  <span className="text-xs text-mehfil-cream/50">(47+ Google Reviews)</span>
-                </div>
-              </div>
+              <h3 className="text-base sm:text-lg font-serif font-bold text-white tracking-wide">
+                Mehfil reviews on Google Maps
+              </h3>
             </div>
 
             <a
@@ -368,7 +361,6 @@ export default function Testimonials() {
             </a>
           </div>
 
-          {/* Explicit Paragraph of Review from Google Maps */}
           <div className="pt-5">
             <div className="flex items-center gap-2 mb-2 text-xs uppercase tracking-wider font-medium text-mehfil-gold">
               <span>Google Maps Editorial Summary</span>
@@ -387,9 +379,6 @@ export default function Testimonials() {
             <span className="text-xs uppercase tracking-wider font-semibold text-white/90">
               Diner Experiences
             </span>
-            <span className="text-[11px] text-mehfil-cream/40">
-              · Tap sides or hold
-            </span>
           </div>
 
           {/* Filter Pills */}
@@ -401,10 +390,14 @@ export default function Testimonials() {
             ].map((item) => (
               <button
                 key={item.id}
+                type="button"
+                aria-pressed={filter === item.id}
                 onClick={() => {
+                  if (filter === item.id) return;
+                  setIsPaused(true);
                   setFilter(item.id);
                   setCurrent(0);
-                  setProgress(0);
+                  progress.jump(0);
                 }}
                 className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${filter === item.id
                   ? 'bg-mehfil-gold text-black font-semibold shadow-glow-sm'
@@ -425,17 +418,19 @@ export default function Testimonials() {
           className="relative select-none"
         >
           <div
-            className="rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl relative overflow-hidden bg-[#12100E] touch-none cursor-pointer"
+            ref={carouselRef}
+            aria-live={isPaused ? 'polite' : 'off'}
+            className="rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl relative overflow-hidden bg-[#12100E] touch-pan-y touch-pinch-zoom cursor-pointer"
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerCancel}
             onPointerCancel={handlePointerCancel}
           >
             {/* Story-style Progress Indicator at Top */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
-              <div
-                className="h-full bg-mehfil-gold transition-all duration-75"
-                style={{ width: `${progress}%` }}
+            <div aria-hidden="true" className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+              <motion.div
+                className="h-full bg-mehfil-gold"
+                style={{ scaleX: progress, originX: 0 }}
               />
             </div>
 
@@ -535,6 +530,17 @@ export default function Testimonials() {
                 </svg>
               </a>
             </div>
+          </div>
+          <div className="mt-3 flex justify-center gap-2" aria-label="Review controls" role="group">
+            <button type="button" className={controlClass} aria-label="Previous review" onClick={() => navigateFromControls(-1)}>
+              Previous
+            </button>
+            <button type="button" className={`${controlClass} motion-reduce:hidden`} onClick={() => setIsPaused((paused) => !paused)}>
+              {isPaused ? 'Play reviews' : 'Pause reviews'}
+            </button>
+            <button type="button" className={controlClass} aria-label="Next review" onClick={() => navigateFromControls(1)}>
+              Next
+            </button>
           </div>
         </motion.div>
       </div>

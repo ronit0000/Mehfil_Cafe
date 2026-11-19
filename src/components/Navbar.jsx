@@ -1,5 +1,5 @@
 // src/components/Navbar.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useScrollY } from '../hooks/useScrollY';
 
@@ -16,33 +16,48 @@ export default function Navbar() {
   const scrollY   = useScrollY();
   const [open, setOpen] = useState(false);
   const scrolled  = scrollY > 80;
+  const toggleRef = useRef(null);
+  const drawerRef = useRef(null);
 
-  // Close on ESC
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    if (!open) return;
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setOpen(false);
+    };
+    const focusable = drawerRef.current.querySelectorAll('button, a[href]');
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    first.focus();
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+      if (event.key !== 'Tab') return;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    desktop.addEventListener('change', closeOnDesktop);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
-
-  // Prevent body scroll when mobile menu open
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = overflow;
+      desktop.removeEventListener('change', closeOnDesktop);
+      window.removeEventListener('keydown', onKey);
+      if (!desktop.matches) toggleRef.current?.focus({ preventScroll: true });
+    };
   }, [open]);
-
-  const scrollTo = (href) => {
-    setOpen(false);
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <>
-      <motion.header
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-[padding,box-shadow] duration-500 ${
+      <header
+        className={`navbar-enter fixed top-0 left-0 right-0 z-50 transition-[padding,box-shadow] duration-500 ${
           scrolled ? 'py-3 shadow-[0_4px_30px_rgba(0,0,0,0.6)]' : 'py-5'
         }`}
         style={{
@@ -72,7 +87,6 @@ export default function Navbar() {
           {/* Logo */}
           <a
             href="#home"
-            onClick={(e) => { e.preventDefault(); scrollTo('#home'); }}
             className="flex items-center gap-3 group"
             aria-label="Mehfil Rooftop Cafe & Restro – Home"
           >
@@ -102,7 +116,6 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                onClick={(e) => { e.preventDefault(); scrollTo(link.href); }}
                 className="relative px-4 py-2 text-sm font-medium text-mehfil-cream/70 hover:text-mehfil-gold transition-colors duration-300 group"
               >
                 {link.label}
@@ -115,7 +128,6 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <a
               href="#reservation"
-              onClick={(e) => { e.preventDefault(); scrollTo('#reservation'); }}
               className="hidden lg:block btn-primary text-xs py-3 px-6"
               style={{ animation: 'pulseGlow 2.5s ease-in-out infinite' }}
             >
@@ -125,7 +137,8 @@ export default function Navbar() {
             {/* Hamburger */}
             <button
               onClick={() => setOpen(!open)}
-              className="lg:hidden relative w-10 h-10 flex flex-col justify-center items-center gap-1.5 focus-visible:outline-none"
+              ref={toggleRef}
+              className="lg:hidden relative w-10 h-10 flex flex-col justify-center items-center gap-1.5"
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
             >
@@ -135,7 +148,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
@@ -152,6 +165,7 @@ export default function Navbar() {
             />
             <motion.nav
               key="mobile-menu"
+              ref={drawerRef}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
@@ -187,7 +201,7 @@ export default function Navbar() {
                   <motion.a
                     key={link.href}
                     href={link.href}
-                    onClick={(e) => { e.preventDefault(); scrollTo(link.href); }}
+                    onClick={() => setOpen(false)}
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.05 + 0.1 }}
@@ -203,7 +217,7 @@ export default function Navbar() {
 
               <motion.a
                 href="#reservation"
-                onClick={(e) => { e.preventDefault(); scrollTo('#reservation'); }}
+                onClick={() => setOpen(false)}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35 }}

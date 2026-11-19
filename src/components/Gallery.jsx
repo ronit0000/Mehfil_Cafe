@@ -1,6 +1,6 @@
 // src/components/Gallery.jsx
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import { animate, motion, useInView, useMotionValue, AnimatePresence } from 'framer-motion';
 
 const storyMoments = [
   {
@@ -65,77 +65,78 @@ const storyMoments = [
   },
 ];
 
-const STORY_DURATION = 4000; // 4 seconds per story
+const STORY_DURATION = 4;
+const controlClass = 'rounded-full border border-mehfil-gold/30 px-3 py-2 text-xs font-semibold text-mehfil-gold hover:bg-mehfil-gold/10';
 
 export default function Gallery() {
   const ref = useRef(null);
+  const carouselRef = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
+  const carouselInView = useInView(carouselRef, { amount: 0.25 });
   const [current, setCurrent] = useState(0);
   const [direction, setDirection] = useState(1);
   const [isHolding, setIsHolding] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const pointerStartTime = useRef(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const progress = useMotionValue(0);
+  const pointerStart = useRef(null);
 
   const total = storyMoments.length;
   const activeStory = storyMoments[current];
 
-  const goToNext = useCallback(() => {
-    setDirection(1);
-    setProgress(0);
-    setCurrent((prev) => (prev + 1) % total);
-  }, [total]);
+  const goToSlide = useCallback((step) => {
+    progress.jump(0);
+    setDirection(step);
+    setCurrent((prev) => (prev + step + total) % total);
+  }, [progress, total]);
 
-  const goToPrev = useCallback(() => {
-    setDirection(-1);
-    setProgress(0);
-    setCurrent((prev) => (prev - 1 + total) % total);
-  }, [total]);
-
-  // Instagram story-style progress & hold-to-pause
-  // Moves automatically, pauses completely while finger is held on screen
   useEffect(() => {
-    if (isHolding) return;
+    if (!carouselInView || isHolding || isPaused) return;
 
-    const tickInterval = 50;
-    const step = (tickInterval / STORY_DURATION) * 100;
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev + step >= 100) {
-          setDirection(1);
-          setCurrent((c) => (c + 1) % total);
-          return 0;
-        }
-        return prev + step;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let playback;
+    function updatePlayback() {
+      playback?.stop();
+      if (reducedMotion.matches) return;
+      playback = animate(progress, 1, {
+        duration: STORY_DURATION * (1 - progress.get()),
+        ease: 'linear',
+        onComplete: () => goToSlide(1),
       });
-    }, tickInterval);
-
-    return () => clearInterval(timer);
-  }, [isHolding, total]);
+    }
+    updatePlayback();
+    reducedMotion.addEventListener('change', updatePlayback);
+    return () => {
+      playback?.stop();
+      reducedMotion.removeEventListener('change', updatePlayback);
+    };
+  }, [carouselInView, current, goToSlide, isHolding, isPaused, progress]);
 
   // Pointer interactions: tap left/right to skip, hold to pause
-  const handlePointerDown = () => {
-    pointerStartTime.current = Date.now();
+  const handlePointerDown = (e) => {
+    if (!e.isPrimary || e.button !== 0) return;
+    pointerStart.current = { x: e.clientX, y: e.clientY, time: Date.now() };
     setIsHolding(true);
   };
 
   const handlePointerUp = (e) => {
+    if (!e.isPrimary || !pointerStart.current) return;
+    const { x, y, time } = pointerStart.current;
+    pointerStart.current = null;
     setIsHolding(false);
-    const duration = Date.now() - pointerStartTime.current;
-    // If it was a quick tap (< 220ms), navigate left or right like Instagram Stories
-    if (duration < 220 && e.currentTarget) {
+    if (Date.now() - time < 220 && Math.hypot(e.clientX - x, e.clientY - y) < 10) {
       const rect = e.currentTarget.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      if (clickX < rect.width * 0.35) {
-        goToPrev();
-      } else {
-        goToNext();
-      }
+      goToSlide(e.clientX - rect.left < rect.width * 0.35 ? -1 : 1);
     }
   };
 
   const handlePointerCancel = () => {
+    pointerStart.current = null;
     setIsHolding(false);
+  };
+
+  const navigateFromControls = (step) => {
+    setIsPaused(true);
+    goToSlide(step);
   };
 
   // Slide animation variants for right-to-left motion
@@ -192,7 +193,7 @@ export default function Gallery() {
             The <span className="font-serif italic text-mehfil-gold">Mehfil</span> Experience
           </h2>
           <p className="mt-4 text-mehfil-cream/65 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-light">
-            A visual walkthrough across our open-sky terrace in Berhampur. Tap left/right to explore, or hold anywhere to pause.
+            A visual walkthrough across our open-sky terrace in Berhampur.
           </p>
         </motion.div>
 
@@ -205,28 +206,25 @@ export default function Gallery() {
         >
           {/* Main Visual Display Frame (Single Image at a time) */}
           <div
-            className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40 touch-none cursor-pointer"
+            ref={carouselRef}
+            className="relative overflow-hidden rounded-3xl border border-white/10 shadow-card bg-black/40 touch-pan-y touch-pinch-zoom cursor-pointer"
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
             onPointerLeave={handlePointerCancel}
             onPointerCancel={handlePointerCancel}
           >
             {/* Instagram Story Progress Segments at Top */}
-            <div className="absolute top-3 left-4 right-4 z-20 flex gap-1.5 pointer-events-none">
+            <div aria-hidden="true" className="absolute top-3 left-4 right-4 z-20 flex gap-1.5 pointer-events-none">
               {storyMoments.map((item, idx) => (
                 <div
                   key={item.id}
                   className="flex-1 h-1 rounded-full bg-white/20 overflow-hidden backdrop-blur-sm"
                 >
-                  <div
-                    className="h-full bg-mehfil-gold transition-all duration-75"
+                  <motion.div
+                    className="h-full bg-mehfil-gold"
                     style={{
-                      width:
-                        idx < current
-                          ? '100%'
-                          : idx === current
-                            ? `${progress}%`
-                            : '0%',
+                      scaleX: idx < current ? 1 : idx === current ? progress : 0,
+                      originX: 0,
                     }}
                   />
                 </div>
@@ -248,7 +246,7 @@ export default function Gallery() {
                   src={activeStory.src}
                   alt={activeStory.title}
                   className="w-full h-full object-cover select-none pointer-events-none"
-                  loading="eager"
+                  loading="lazy"
                   draggable={false}
                 />
 
@@ -273,8 +271,20 @@ export default function Gallery() {
             </AnimatePresence>
           </div>
 
+          <div className="mt-3 flex justify-center gap-2" aria-label="Gallery controls" role="group">
+            <button type="button" className={controlClass} aria-label="Previous gallery photo" onClick={() => navigateFromControls(-1)}>
+              Previous
+            </button>
+            <button type="button" className={`${controlClass} motion-reduce:hidden`} onClick={() => setIsPaused((paused) => !paused)}>
+              {isPaused ? 'Play slideshow' : 'Pause slideshow'}
+            </button>
+            <button type="button" className={controlClass} aria-label="Next gallery photo" onClick={() => navigateFromControls(1)}>
+              Next
+            </button>
+          </div>
+
           {/* Dedicated Story Card - Located directly UNDERNEATH the image */}
-          <div className="mt-4 sm:mt-5 glass rounded-3xl p-6 sm:p-8 border border-mehfil-gold/20 shadow-card relative">
+          <div aria-live={isPaused ? 'polite' : 'off'} className="mt-4 sm:mt-5 glass rounded-3xl p-6 sm:p-8 border border-mehfil-gold/20 shadow-card relative">
             <div className="flex items-center gap-2.5 mb-2.5">
               <span className="w-2 h-2 rounded-full bg-mehfil-gold animate-pulse flex-shrink-0" />
               <span className="text-xs uppercase tracking-wider font-medium text-mehfil-gold">

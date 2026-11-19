@@ -448,14 +448,14 @@ export const menuPages = [
       },
       {
         "id": "sal-4",
-        "name": "Caeser Salad Veg",
+        "name": "Caesar Salad Veg",
         "dietaryType": "veg",
         "badge": "Chef's Pick",
         "desc": "Crisp romaine lettuce hearts and crunchy croutons tossed in a rich, creamy garlic-parmesan dressing."
       },
       {
         "id": "sal-5",
-        "name": "Caeser Salad Non Veg",
+        "name": "Caesar Salad Non Veg",
         "dietaryType": "non-veg",
         "badge": "Signature",
         "desc": "Crisp romaine lettuce hearts and golden croutons in rich parmesan dressing, crowned with tender grilled chicken."
@@ -753,26 +753,26 @@ export const menuPages = [
       },
       {
         "id": "cn-6",
-        "name": "Mix Non Veg Noddles",
+        "name": "Mix Non Veg Noodles",
         "dietaryType": "non-veg",
         "desc": "Hand-pulled soft wheat noodles stir-fried with tender chicken, farm egg, and sweet coastal prawns."
       },
       {
         "id": "cn-7",
-        "name": "Schezwan style Mix Non Veg Noddles",
+        "name": "Schezwan style Mix Non Veg Noodles",
         "dietaryType": "non-veg",
         "desc": "Wok-charred noodles with chicken, egg, and prawns tossed in a bold, fiery Schezwan reduction."
       },
       {
         "id": "cn-8",
-        "name": "Chicken Hakka Noddles",
+        "name": "Chicken Hakka Noodles",
         "dietaryType": "non-veg",
         "badge": "Bestseller",
         "desc": "Soft noodles tossed over high flame with tender shredded chicken, crisp cabbage, and scallions."
       },
       {
         "id": "cn-9",
-        "name": "Schezwan style Chicken Hakka Noddles",
+        "name": "Schezwan style Chicken Hakka Noodles",
         "dietaryType": "non-veg",
         "desc": "Spicy wok-tossed noodles with chicken and sweet bell peppers in an assertive, house-made Schezwan glaze."
       },
@@ -904,7 +904,7 @@ export const menuPages = [
       },
       {
         "id": "rb-5",
-        "name": "Chicken Dum biryani",
+        "name": "Chicken Dum Biryani",
         "dietaryType": "non-veg",
         "badge": "Signature",
         "desc": "A world-renowned regal dish featuring tender, juicy chicken marinated in a spiced yogurt blend, layered with long-grain basmati."

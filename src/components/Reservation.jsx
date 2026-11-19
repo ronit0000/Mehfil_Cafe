@@ -1,9 +1,26 @@
 // src/components/Reservation.jsx
-import { useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const WHATSAPP_PHONE = '917789922251'; // +91 77899 22251
+const MAX_GUESTS = 1000;
+const cafeClockFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Kolkata',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+const bookingDateFormatter = new Intl.DateTimeFormat('en-IN', {
+  timeZone: 'UTC',
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
 
 const timeSlots = [
   '11:00 AM', '11:30 AM',
@@ -31,17 +48,61 @@ function parseTimeToMinutes(timeStr) {
   return hours * 60 + minutes;
 }
 
-function getLocalDateString(d = new Date()) {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+function getCafeClock(now = new Date()) {
+  const parts = cafeClockFormatter.formatToParts(now).map(({ type, value }) => [type, value]);
+  const { year, month, day, hour, minute } = Object.fromEntries(parts);
+  return { date: `${year}-${month}-${day}`, minutes: Number(hour) * 60 + Number(minute) };
+}
+
+function getAvailableSlots(date, clock) {
+  return clock && date === clock.date
+    ? timeSlots.filter((slot) => parseTimeToMinutes(slot) > clock.minutes)
+    : timeSlots;
+}
+
+function getFieldError(field, form, clock) {
+  switch (field) {
+    case 'name':
+      return form.name.trim() ? '' : 'Please enter your full name.';
+    case 'email': {
+      const email = form.email.trim();
+      return email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Enter a valid email address.' : '';
+    }
+    case 'phone': {
+      const phone = form.phone.trim();
+      const digits = phone.replace(/\D/g, '');
+      const valid = /^\+?[\d\s().-]+$/.test(phone) && digits.length >= 7 && digits.length <= 15;
+      return phone && !valid ? 'Enter a valid phone number.' : '';
+    }
+    case 'guests': {
+      const guests = Number(form.guests);
+      return Number.isInteger(guests) && guests >= 1 && guests <= MAX_GUESTS
+        ? ''
+        : `Enter a whole number from 1 to ${MAX_GUESTS}.`;
+    }
+    case 'date': {
+      if (!form.date) return 'Please select a date.';
+      const requestedDate = new Date(`${form.date}T00:00:00Z`);
+      if (Number.isNaN(requestedDate.getTime()) || requestedDate.toISOString().slice(0, 10) !== form.date) {
+        return 'Enter a valid reservation date.';
+      }
+      return form.date < clock.date ? 'Select today or a later date in Berhampur.' : '';
+    }
+    case 'time': {
+      const availableSlots = getAvailableSlots(form.date, clock);
+      if (availableSlots.length === 0) return 'No slots remain today. Select a later date.';
+      if (!timeSlots.includes(form.time)) return 'Please select a time slot.';
+      return availableSlots.includes(form.time) ? '' : 'This time has passed. Select an upcoming slot.';
+    }
+    default:
+      return '';
+  }
 }
 
 // FloatingInput with reserved message slot for Zero Cumulative Layout Shift (Zero CLS)
 function FloatingInput({
   id, label, type = 'text', value, onChange, onBlur,
-  error, helperText, children, as: Tag = 'input', ...rest
+  error, children, as: Tag = 'input', ...rest
 }) {
   const isTextarea = Tag === 'textarea';
   return (
@@ -70,13 +131,11 @@ function FloatingInput({
 
       {/* Reserved message height slot prevents screen jumps / layout shift */}
       <div className="min-h-[14px] sm:min-h-[18px] mt-0.5 pl-1 text-[11px] sm:text-xs flex items-center">
-        {error ? (
+        {error && (
           <p id={`${id}-error`} className="text-red-400" role="alert">
             {error}
           </p>
-        ) : helperText ? (
-          <p className="text-mehfil-cream/40 text-[10px] sm:text-[11px]">{helperText}</p>
-        ) : null}
+        )}
       </div>
     </div>
   );
@@ -90,116 +149,55 @@ const initialErrors = { name: '', email: '', phone: '', guests: '', date: '', ti
 export default function Reservation() {
   const [form,    setForm]    = useState(initialForm);
   const [errors,  setErrors]  = useState(initialErrors);
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [clock, setClock] = useState(null);
   const sectionRef = useRef(null);
   const inView     = useInView(sectionRef, { once: true, margin: '-80px' });
 
-  const today = getLocalDateString();
-  const isToday = form.date === today;
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  useEffect(() => {
+    let timer;
+    function updateClock() {
+      const now = new Date();
+      setClock(getCafeClock(now));
+      timer = setTimeout(updateClock, 60_000 - (now.getTime() % 60_000));
+    }
+    updateClock();
+    return () => clearTimeout(timer);
+  }, []);
 
-  // If today is chosen, dynamically display ONLY future time slots (slots strictly after current time)
-  const availableSlots = isToday
-    ? timeSlots.filter((slot) => parseTimeToMinutes(slot) > currentMinutes)
-    : timeSlots;
-
-  const validate = () => {
-    const e = { ...initialErrors };
-    if (!form.name.trim()) e.name = 'Please enter your full name.';
-    if (form.email && !form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      e.email = 'Enter a valid email address.';
-    }
-    if (form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) {
-      e.phone = 'Enter a valid phone number.';
-    }
-    if (!form.guests || Number(form.guests) < 1) {
-      e.guests = 'Please enter the number of guests (min 1).';
-    }
-    if (!form.date) {
-      e.date = 'Please select a date.';
-    }
-    if (isToday && availableSlots.length === 0) {
-      e.time = 'No more slots available today. Please select tomorrow.';
-    } else if (!form.time) {
-      e.time = 'Please select a time slot.';
-    } else if (isToday && parseTimeToMinutes(form.time) <= currentMinutes) {
-      e.time = 'This time has already passed. Please pick an upcoming slot.';
-    }
-
-    setErrors(e);
-    return Object.values(e).every((v) => !v);
-  };
+  const availableSlots = getAvailableSlots(form.date, clock);
+  const slotsClosed = availableSlots.length === 0;
 
   const handleChange = (field) => (e) => {
     const val = e.target.value;
     if (field === 'date') {
-      const isSelectedToday = val === today;
-      const nextAvailable = isSelectedToday
-        ? timeSlots.filter((slot) => parseTimeToMinutes(slot) > currentMinutes)
-        : timeSlots;
-
-      let newTime = form.time;
-      // If switching to today and current chosen time has passed, clear it smoothly
-      if (isSelectedToday && (!newTime || !nextAvailable.includes(newTime))) {
-        newTime = '';
-      }
-      setForm((prev) => ({ ...prev, date: val, time: newTime }));
+      const nextAvailable = getAvailableSlots(val, getCafeClock());
+      setForm((prev) => ({ ...prev, date: val, time: nextAvailable.includes(prev.time) ? prev.time : '' }));
+      setErrors((prev) => ({ ...prev, date: '', time: '' }));
     } else {
       setForm((prev) => ({ ...prev, [field]: val }));
+      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
     }
-
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
   const handleBlur = (field) => () => {
-    const e = { ...errors };
-    if (field === 'name' && !form.name.trim()) e.name = 'Please enter your full name.';
-    if (field === 'email' && form.email && !form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      e.email = 'Enter a valid email address.';
-    }
-    if (field === 'phone' && form.phone && !form.phone.match(/^\+?[\d\s-]{7,15}$/)) {
-      e.phone = 'Enter a valid phone number.';
-    }
-    if (field === 'guests' && (!form.guests || Number(form.guests) < 1)) {
-      e.guests = 'Please enter number of guests (min 1).';
-    }
-    if (field === 'date' && !form.date) e.date = 'Please select a date.';
-    if (field === 'time') {
-      if (!form.time) e.time = 'Please select a time slot.';
-      else if (isToday && parseTimeToMinutes(form.time) <= currentMinutes) {
-        e.time = 'This time has passed. Please select an upcoming slot.';
-      }
-    }
-    setErrors(e);
+    const error = getFieldError(field, form, getCafeClock());
+    setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) {
-      toast.error('Please complete all required fields.');
+    const submitClock = getCafeClock();
+    setClock(submitClock);
+    const validation = Object.fromEntries(
+      Object.keys(initialErrors).map((field) => [field, getFieldError(field, form, submitClock)]),
+    );
+    setErrors(validation);
+    if (Object.values(validation).some(Boolean)) {
+      toast.error('Check the highlighted reservation details.');
       return;
     }
 
-    setLoading(true);
-
-    // Format date in clean readable format
-    let formattedDate = form.date;
-    try {
-      if (form.date) {
-        const [year, month, day] = form.date.split('-');
-        const dateObj = new Date(Number(year), Number(month) - 1, Number(day));
-        formattedDate = dateObj.toLocaleDateString('en-IN', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        });
-      }
-    } catch {
-      formattedDate = form.date;
-    }
+    const formattedDate = bookingDateFormatter.format(new Date(`${form.date}T00:00:00Z`));
 
     // Build clean WhatsApp message (no asterisks at line beginnings)
     const lines = [
@@ -207,9 +205,9 @@ export default function Reservation() {
       'Table Reservation Request',
       '--------------------------------',
       `Name: ${form.name.trim()}`,
-      `Number of Guests: ${form.guests}`,
+      `Number of Guests: ${Number(form.guests)}`,
       `Date: ${formattedDate}`,
-      `Time Slot: ${form.time}`,
+      `Time Slot: ${form.time} IST`,
     ];
 
     if (form.phone.trim()) {
@@ -231,17 +229,7 @@ export default function Reservation() {
     const message = lines.join('\n');
     const whatsappUrl = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
 
-    // Open WhatsApp directly with prefilled details
-    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-
-    setLoading(false);
-    setSuccess(true);
-    toast.success(
-      `🎉 Opening WhatsApp with your reservation details for ${form.name}!`,
-      { duration: 5000 }
-    );
-
-    setTimeout(() => setSuccess(false), 4000);
+    window.location.assign(whatsappUrl);
   };
 
   return (
@@ -257,6 +245,7 @@ export default function Reservation() {
         <img
           src="/images/hero2.jpg"
           alt=""
+          loading="lazy"
           className="w-full h-full object-cover"
           style={{ filter: 'blur(2px)', transform: 'scale(1.05)' }}
         />
@@ -283,7 +272,7 @@ export default function Reservation() {
             Book a <span className="font-serif italic text-mehfil-gold">Table</span>
           </h2>
           <p className="mt-2 sm:mt-4 text-mehfil-cream/60 text-xs sm:text-sm md:text-base max-w-xl mx-auto leading-relaxed font-light px-2">
-            Secure your rooftop experience. Confirming your reservation sends your filled details directly to our team via WhatsApp for instant confirmation.
+            Continue to WhatsApp and send the prefilled message to request a table. Our team will confirm availability.
           </p>
         </motion.div>
 
@@ -311,6 +300,7 @@ export default function Reservation() {
                   onBlur={handleBlur('name')}
                   error={errors.name}
                   autoComplete="name"
+                  required
                 />
                 <FloatingInput
                   id="email"
@@ -328,7 +318,7 @@ export default function Reservation() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 items-start">
                 <FloatingInput
                   id="phone"
-                  label="Phone Number"
+                  label="Phone Number (optional)"
                   type="tel"
                   value={form.phone}
                   onChange={handleChange('phone')}
@@ -342,12 +332,13 @@ export default function Reservation() {
                   type="number"
                   inputMode="numeric"
                   min="1"
-                  max="1000"
+                  max={MAX_GUESTS}
+                  step="1"
                   value={form.guests}
                   onChange={handleChange('guests')}
                   onBlur={handleBlur('guests')}
                   error={errors.guests}
-                  helperText="Default: 2 guests (edit or type as desired)"
+                  required
                 />
               </div>
 
@@ -361,7 +352,8 @@ export default function Reservation() {
                       value={form.date}
                       onChange={handleChange('date')}
                       onBlur={handleBlur('date')}
-                      min={today}
+                      min={clock?.date}
+                      required
                       className={`form-input${errors.date ? ' error' : ''}`}
                       aria-describedby={errors.date ? 'date-error' : undefined}
                       aria-invalid={!!errors.date}
@@ -392,19 +384,19 @@ export default function Reservation() {
                   <div className="relative">
                     <select
                       id="time"
-                      value={form.time}
+                      value={availableSlots.includes(form.time) ? form.time : ''}
                       onChange={handleChange('time')}
                       onBlur={handleBlur('time')}
-                      disabled={isToday && availableSlots.length === 0}
+                      disabled={slotsClosed}
+                      required
                       className={`form-input appearance-none cursor-pointer transition-colors duration-200 ${
                         errors.time ? 'error' : ''
-                      } ${isToday && availableSlots.length === 0 ? 'text-mehfil-cream/50 bg-white/[0.02]' : ''}`}
-                      aria-label="Preferred time"
-                      aria-describedby={errors.time ? 'time-error' : undefined}
+                      } ${slotsClosed ? 'text-mehfil-cream/50 bg-white/[0.02]' : ''}`}
+                      aria-describedby={errors.time ? 'time-error' : 'time-help'}
                       aria-invalid={!!errors.time}
                     >
                       <option value="" className="bg-mehfil-stone text-mehfil-cream/60">
-                        {isToday && availableSlots.length === 0
+                        {slotsClosed
                           ? 'No slots available today'
                           : 'Select Time Slot'}
                       </option>
@@ -443,11 +435,11 @@ export default function Reservation() {
                       <p id="time-error" className="text-red-400" role="alert">
                         {errors.time}
                       </p>
-                    ) : isToday && availableSlots.length === 0 ? (
-                      <p className="text-amber-400/90 text-[10px] sm:text-[11px] truncate">
-                        Hours ended for today · Choose tomorrow
+                    ) : (
+                      <p id="time-help" className={`text-[10px] sm:text-[11px] ${slotsClosed ? 'text-amber-400/90' : 'text-mehfil-cream/55'}`}>
+                        {slotsClosed ? 'No slots remain today. Select a later date.' : 'Times are shown in Indian Standard Time (IST).'}
                       </p>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               </div>
@@ -496,34 +488,13 @@ export default function Reservation() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full relative overflow-hidden mt-1 sm:mt-2.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl font-semibold text-sm uppercase tracking-wider text-[#0A0A0A] bg-gradient-to-r from-[#D4A843] via-[#E8782A] to-[#D4A843] bg-[length:200%_auto] hover:bg-right transition-all duration-300 shadow-[0_4px_20px_rgba(212,168,67,0.35)] cursor-pointer"
-                aria-live="polite"
+                disabled={!clock}
+                className="w-full relative overflow-hidden mt-1 sm:mt-2.5 flex items-center justify-center gap-2 py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl font-semibold text-sm uppercase tracking-wider text-[#0A0A0A] bg-gradient-to-r from-[#D4A843] via-[#E8782A] to-[#D4A843] bg-[length:200%_auto] hover:bg-right transition-all duration-300 shadow-[0_4px_20px_rgba(212,168,67,0.35)] cursor-pointer"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    <span>Opening WhatsApp…</span>
-                  </span>
-                ) : success ? (
-                  <span className="flex items-center justify-center gap-2 text-green-950 font-semibold">
-                    <svg className="w-4 h-4 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>Opening WhatsApp with Details!</span>
-                  </span>
-                ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    {/* WhatsApp Icon */}
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#0A0A0A] shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                    </svg>
-                    <span>Confirm Reservation via WhatsApp</span>
-                  </span>
-                )}
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#0A0A0A] shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                </svg>
+                <span>Continue to WhatsApp</span>
               </button>
             </form>
           </motion.div>

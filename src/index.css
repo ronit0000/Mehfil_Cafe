@@ -299,6 +299,21 @@
   to   { transform: rotate(360deg); }
 }
 
+.home-content > section[id]:not(#home) {
+  scroll-margin-top: 6rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .navbar-enter {
+    animation: navbar-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes navbar-enter {
+  from { opacity: 0; transform: translate3d(0, -80px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(40px); }
   to   { opacity: 1; transform: translateY(0); }

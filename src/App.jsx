@@ -1,5 +1,6 @@
 // src/App.jsx
 import { useState, useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -13,15 +14,10 @@ import ScrollProgress from './components/ScrollProgress';
 import BackToTop from './components/BackToTop';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
+import MenuBrowse from './components/MenuBrowse';
 
-export default function App() {
-  const [route, setRoute] = useState(() => {
-    if (typeof window === 'undefined') return 'home';
-    const hash = window.location.hash.toLowerCase();
-    if (hash === '#privacy-policy' || hash === '#privacy') return 'privacy';
-    if (hash === '#terms-of-service' || hash === '#terms') return 'terms';
-    return 'home';
-  });
+function Home() {
+  const [route, setRoute] = useState('home');
 
   useEffect(() => {
     // Prevent browser from auto-jumping to previous scroll positions on refresh
@@ -43,6 +39,7 @@ export default function App() {
       }
     };
 
+    handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
@@ -72,7 +69,7 @@ export default function App() {
     <>
       <ScrollProgress />
       <Navbar />
-      <main>
+      <main className="home-content">
         <Hero />
         <About />
         <Menu />
@@ -83,6 +80,24 @@ export default function App() {
       </main>
       <Footer onNavigate={navigateTo} />
       <BackToTop />
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          style: {
+            background: '#1A1A1A',
+            color: '#F5EDD6',
+            border: '1px solid rgba(212,168,67,0.3)',
+            borderRadius: '12px',
+            fontFamily: 'Inter, sans-serif',
+          },
+          success: { iconTheme: { primary: '#D4A843', secondary: '#0A0A0A' } },
+          error: { iconTheme: { primary: '#E8782A', secondary: '#0A0A0A' } },
+        }}
+      />
     </>
   );
+}
+
+export default function App({ page }) {
+  return page.path === '/' ? <Home /> : <MenuBrowse menuPage={page.page ? page : null} />;
 }

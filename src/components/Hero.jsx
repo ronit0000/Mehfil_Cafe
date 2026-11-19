@@ -1,6 +1,6 @@
 // src/components/Hero.jsx
 import { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { useMagneticEffect } from '../hooks/useMagneticEffect';
 
 const slides = [
@@ -37,37 +37,37 @@ export default function Hero() {
   const [current, setCurrent]   = useState(0);
   const [parallax, setParallax] = useState(0);
   const heroRef = useRef(null);
+  const inView = useInView(heroRef);
+  const reduceMotion = useReducedMotion();
   const ctaMagnetic = useMagneticEffect(0.4);
   const outlineMagnetic = useMagneticEffect(0.4);
 
   // Auto-advance slides
   useEffect(() => {
+    if (!inView || reduceMotion) return;
     const timer = setInterval(() => {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, []);
+  }, [inView, reduceMotion]);
 
   // Parallax on scroll
   useEffect(() => {
-    let ticking = false;
+    if (!inView || reduceMotion) return;
+    let frame = 0;
     const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          setParallax(window.scrollY * 0.4);
-          ticking = false;
-        });
-        ticking = true;
-      }
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        setParallax(window.scrollY * 0.4);
+        frame = 0;
+      });
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollTo = (href) => {
-    const el = document.querySelector(href);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [inView, reduceMotion]);
 
   return (
     <section
@@ -112,6 +112,7 @@ export default function Hero() {
                 WebkitBackfaceVisibility: 'hidden',
               }}
               loading={i === 0 ? 'eager' : 'lazy'}
+              fetchpriority={i === 0 ? 'high' : 'low'}
             />
           </div>
         ))}
@@ -136,7 +137,7 @@ export default function Hero() {
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center">
         <motion.div
           variants={container}
-          initial="hidden"
+          initial={false}
           animate="show"
           className="flex flex-col items-center"
         >
@@ -181,7 +182,7 @@ export default function Hero() {
             variants={fadeUp}
             className="text-mehfil-cream/70 text-sm sm:text-lg md:text-xl max-w-2xl leading-relaxed mb-8 sm:mb-10 font-light tracking-wide px-3"
           >
-            Where every sunset is a celebration. Best open-air rooftop dining, authentic multi-cuisine delicacies, and courtly hospitality in the heart of Berhampur (Brahmapur), Odisha.
+            Open-air rooftop dining in Berhampur (Brahmapur), Odisha. Join us for biryani, grilled dishes, pizza and more.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -191,27 +192,27 @@ export default function Hero() {
               onMouseMove={ctaMagnetic.handleMouseMove}
               onMouseLeave={ctaMagnetic.handleMouseLeave}
             >
-              <button
+              <a
                 ref={ctaMagnetic.ref}
-                onClick={() => scrollTo('#reservation')}
+                href="#reservation"
                 className="btn-primary text-xs sm:text-sm w-full sm:w-auto py-3.5 sm:py-4 justify-center"
                 style={{ animation: 'pulseGlow 2.5s ease-in-out infinite, float 6s ease-in-out infinite' }}
               >
                 Reserve Your Table
-              </button>
+              </a>
             </div>
             <div
               className="w-full sm:w-auto"
               onMouseMove={outlineMagnetic.handleMouseMove}
               onMouseLeave={outlineMagnetic.handleMouseLeave}
             >
-              <button
+              <a
                 ref={outlineMagnetic.ref}
-                onClick={() => scrollTo('#menu')}
+                href="#menu"
                 className="btn-outline text-xs sm:text-sm w-full sm:w-auto py-3.5 sm:py-4 justify-center"
               >
                 Explore Menu
-              </button>
+              </a>
             </div>
           </motion.div>
 
